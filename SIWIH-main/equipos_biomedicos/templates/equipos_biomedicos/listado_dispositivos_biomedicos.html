@@ -1,0 +1,124 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Listado de Dispositivos Biomédicos{% endblock title %}
+
+{% block content %}
+<div class="contenedor2 biomedicos-pagina">
+    <div class="biomedicos-listado__encabezado">
+        <div>
+            <a class="biomedicos-volver" href="{% url 'inicio_biomedicos' %}">
+                <i class="bi bi-arrow-left"></i> Equipos Biomédicos
+            </a>
+            <div class="tituloFormulario">
+                <div class="tituloFormulario-texto">
+                    <i class="bi bi-pc-display"></i>
+                    <div>
+                        <h2 class="sin-margen">Listado de dispositivos</h2>
+                        <p class="biomedicos-listado__subtitulo">
+                            Consulta y gestión de los dispositivos biomédicos del hospital.
+                        </p>
+                    </div>
+                </div>
+                <div class="tituloFormulario-subrallado"></div>
+            </div>
+        </div>
+
+        <a class="formularioBotones-boton biomedicos-listado__registrar"
+           href="{% url 'registrar_dispositivo_biomedicos' %}">
+            <i class="bi bi-plus-lg"></i>
+            Registrar dispositivo
+        </a>
+    </div>
+
+    <section class="biomedicos-listado__controles">
+        <div class="biomedicos-listado__busqueda">
+            <label for="buscar_listado_dispositivo">Buscar</label>
+            <div class="biomedicos-listado__busqueda-campo">
+                <i class="bi bi-search"></i>
+                <input class="formularioCampo-text"
+                       id="buscar_listado_dispositivo"
+                       type="search"
+                       placeholder="Buscar por nombre, código interno, serie o modelo">
+            </div>
+        </div>
+
+        <div class="biomedicos-listado__filtros">
+            <div class="biomedicos-listado__filtro">
+                <label for="filtro_area"><i class="bi bi-geo-alt"></i> Área</label>
+                <select class="formularioCampo-select" id="filtro_area">
+                    <option value="">Seleccione el área</option>
+                </select>
+            </div>
+            <div class="biomedicos-listado__filtro">
+                <label for="filtro_estado"><i class="bi bi-eye"></i> Estado</label>
+                <select class="formularioCampo-select" id="filtro_estado">
+                    <option value="">Seleccione el estado</option>
+                </select>
+            </div>
+            <div class="biomedicos-listado__filtro">
+                <label for="filtro_criticidad"><i class="bi bi-activity"></i> Criticidad</label>
+                <select class="formularioCampo-select" id="filtro_criticidad">
+                    <option value="">Seleccione la criticidad</option>
+                </select>
+            </div>
+            <div class="biomedicos-listado__filtro">
+                <label for="filtro_tipo"><i class="bi bi-funnel"></i> Tipo de dispositivo</label>
+                <select class="formularioCampo-select" id="filtro_tipo">
+                    <option value="">Seleccione el tipo</option>
+                </select>
+            </div>
+            <div class="biomedicos-listado__filtro-acciones">
+                <button class="formularioBotones-boton biomedicos-listado__boton-filtro"
+                        type="button" disabled>
+                    <i class="bi bi-filter-circle"></i>
+                    Limpiar filtros
+                </button>
+                <button class="formularioBotones-boton biomedicos-listado__boton-filtro"
+                        type="button" disabled>
+                    <i class="bi bi-funnel-fill"></i>
+                    Aplicar filtros
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <div class="biomedicos-listado__tabla-contenedor">
+        <table class="dataTable stripe hover row-border biomedicos-listado__tabla">
+            <thead>
+                <tr>
+                    <th>Código</th>
+                    <th>Nombre del dispositivo</th>
+                    <th>Tipo</th>
+                    <th>Marca</th>
+                    <th>Modelo</th>
+                    <th>Número de serie</th>
+                    <th>Área</th>
+                    <th>Empleado a cargo</th>
+                    <th>Estado</th>
+                    <th>Criticidad</th>
+                    <th>Próximo mantenimiento</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="biomedicos-listado__vacio" colspan="12">
+                        <i class="bi bi-inbox"></i>
+                        <strong>Aún no existen dispositivos registrados</strong>
+                        <span>Los dispositivos aparecerán aquí cuando conectemos el inventario.</span>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <footer class="biomedicos-listado__pie">
+        <span>Mostrando 0 dispositivos</span>
+        <div class="biomedicos-listado__paginacion controles_clic_desactivados texto_desactivados">
+            <button type="button"><i class="bi bi-chevron-left"></i></button>
+            <button class="biomedicos-listado__pagina-activa" type="button">1</button>
+            <button type="button"><i class="bi bi-chevron-right"></i></button>
+        </div>
+    </footer>
+</div>
+{% endblock content %}

@@ -15,6 +15,13 @@ def registrar_dispositivo(request):
     )
 
 
+def listado_dispositivos(request):
+    return render(
+        request,
+        'equipos_biomedicos/listado_dispositivos_biomedicos.html'
+    )
+
+
 def escanear_qr(request):
     return render(
         request,

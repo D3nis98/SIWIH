@@ -18,6 +18,7 @@ class EquiposBiomedicosViewsTests(TestCase):
         nombres_rutas = [
             'inicio_biomedicos',
             'registrar_dispositivo_biomedicos',
+            'listado_dispositivos_biomedicos',
             'escanear_qr_biomedicos',
             'buscar_dispositivo_biomedicos',
         ]
