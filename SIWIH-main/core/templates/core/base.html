@@ -138,6 +138,24 @@
             {% endif %}
 
 
+            {% if  request.user|tiene_unidad:"UAU" %}
+               <li>  
+                  <a href="{% url 'listar_referencias' %}" class="bn-navegacion__enlace">
+                     <i class="bi bi-cpu bn-navegacion-enlace__logo"></i>
+                     <span class="bn-navegacion-enlace__texto">PUEBAS</span>
+                  </a>
+               </li>
+            {% endif %}
+            {% if  request.user|tiene_unidad:"UAU" %}
+               <li>  
+                  <a href="{% url 'listar_referencias' %}" class="bn-navegacion__enlace">
+                     <i class="bi bi-wrench-adjustable bn-navegacion-enlace__logo"></i>
+                     <span class="bn-navegacion-enlace__texto">ICONO???</span>
+                  </a>
+               </li>
+            {% endif %}
+
+
             <li>  
                <a href="{% url 'generador_reporte' %}" class="bn-navegacion__enlace">
                   <i class="bi bi-journal-text bn-navegacion-enlace__logo"></i>
