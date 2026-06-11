@@ -1,0 +1,176 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Registrar Dispositivo Biomédico{% endblock title %}
+
+{% block content %}
+<div class="contenedor2 biomedicos-pagina">
+    <a class="biomedicos-volver" href="{% url 'inicio_biomedicos' %}">
+        <i class="bi bi-arrow-left"></i> Equipos Biomédicos
+    </a>
+
+    <div class="tituloFormulario">
+        <div class="tituloFormulario-texto">
+            <i class="bi bi-clipboard2-plus"></i>
+            <h2 class="sin-margen">Registrar dispositivo</h2>
+        </div>
+        <div class="tituloFormulario-subrallado"></div>
+    </div>
+
+    <form class="biomedicos-registro" autocomplete="off">
+        <section class="biomedicos-registro__seccion biomedicos-registro__seccion--informacion">
+            <h3 class="biomedicos-registro__titulo">
+                <i class="bi bi-info-circle"></i>
+                Información del dispositivo
+            </h3>
+
+            <div class="biomedicos-registro__campos biomedicos-registro__campos--dos">
+                <div class="biomedicos-registro__campo">
+                    <label for="nombre_dispositivo">Nombre del dispositivo *</label>
+                    <input class="formularioCampo-text" id="nombre_dispositivo" type="text"
+                           placeholder="Ingrese el nombre del dispositivo">
+                </div>
+                <div class="biomedicos-registro__campo">
+                    <label for="tipo_dispositivo">Tipo de dispositivo *</label>
+                    <select class="formularioCampo-select" id="tipo_dispositivo">
+                        <option value="">Seleccione el tipo de dispositivo</option>
+                    </select>
+                </div>
+                <div class="biomedicos-registro__campo">
+                    <label for="marca_dispositivo">Marca *</label>
+                    <input class="formularioCampo-text" id="marca_dispositivo" type="text"
+                           placeholder="Ingrese la marca">
+                </div>
+                <div class="biomedicos-registro__campo">
+                    <label for="modelo_dispositivo">Modelo *</label>
+                    <input class="formularioCampo-text" id="modelo_dispositivo" type="text"
+                           placeholder="Ingrese el modelo">
+                </div>
+                <div class="biomedicos-registro__campo biomedicos-registro__campo--completo">
+                    <label for="serie_dispositivo">Número de serie *</label>
+                    <input class="formularioCampo-text" id="serie_dispositivo" type="text"
+                           placeholder="Ingrese el número de serie">
+                </div>
+            </div>
+        </section>
+
+        <section class="biomedicos-registro__seccion biomedicos-registro__seccion--ubicacion">
+            <h3 class="biomedicos-registro__titulo">
+                <i class="bi bi-geo-alt"></i>
+                Ubicación y responsable
+            </h3>
+
+            <div class="biomedicos-registro__campos">
+                <div class="biomedicos-registro__campo">
+                    <label for="area_dispositivo">Área *</label>
+                    <select class="formularioCampo-select" id="area_dispositivo">
+                        <option value="">Seleccione el área</option>
+                    </select>
+                </div>
+                <div class="biomedicos-registro__campo">
+                    <label for="responsable_dispositivo">Empleado a cargo *</label>
+                    <select class="formularioCampo-select" id="responsable_dispositivo">
+                        <option value="">Seleccione el empleado a cargo</option>
+                    </select>
+                </div>
+            </div>
+        </section>
+
+        <section class="biomedicos-registro__seccion biomedicos-registro__seccion--control">
+            <h3 class="biomedicos-registro__titulo">
+                <i class="bi bi-shield"></i>
+                Control inicial
+            </h3>
+
+            <div class="biomedicos-registro__campos biomedicos-registro__campos--dos">
+                <div class="biomedicos-registro__campo">
+                    <label for="estado_dispositivo">Estado inicial *</label>
+                    <select class="formularioCampo-select" id="estado_dispositivo">
+                        <option value="">Seleccione el estado inicial</option>
+                    </select>
+                </div>
+                <div class="biomedicos-registro__campo">
+                    <label for="criticidad_dispositivo">Criticidad *</label>
+                    <select class="formularioCampo-select" id="criticidad_dispositivo">
+                        <option value="">Seleccione la criticidad</option>
+                    </select>
+                </div>
+                <div class="biomedicos-registro__campo biomedicos-registro__campo--completo">
+                    <label for="frecuencia_dispositivo">Frecuencia de mantenimiento *</label>
+                    <select class="formularioCampo-select" id="frecuencia_dispositivo">
+                        <option value="">Seleccione la frecuencia de mantenimiento</option>
+                    </select>
+                </div>
+            </div>
+        </section>
+
+        <section class="biomedicos-registro__seccion biomedicos-registro__seccion--administrativa">
+            <h3 class="biomedicos-registro__titulo">
+                <i class="bi bi-briefcase"></i>
+                Información administrativa
+            </h3>
+
+            <div class="biomedicos-registro__campos biomedicos-registro__campos--dos">
+                <div class="biomedicos-registro__campo">
+                    <label for="instalacion_dispositivo">Fecha de instalación *</label>
+                    <input class="formularioCampo-date" id="instalacion_dispositivo" type="date">
+                </div>
+                <div class="biomedicos-registro__campo">
+                    <label for="garantia_dispositivo">Fin de garantía</label>
+                    <input class="formularioCampo-date" id="garantia_dispositivo" type="date">
+                </div>
+                <div class="biomedicos-registro__campo">
+                    <label for="costo_dispositivo">Costo de adquisición *</label>
+                    <div class="biomedicos-registro__costo">
+                        <span>L/</span>
+                        <input class="formularioCampo-text" id="costo_dispositivo" type="number"
+                               min="0" step="0.01" placeholder="Ingrese el costo">
+                    </div>
+                </div>
+                <div class="biomedicos-registro__campo biomedicos-registro__campo--completo">
+                    <label for="observaciones_dispositivo">Observaciones</label>
+                    <textarea class="formularioCampo-text no-resize" id="observaciones_dispositivo"
+                              rows="4" placeholder="Ingrese observaciones adicionales (opcional)"></textarea>
+                </div>
+            </div>
+        </section>
+
+        <section class="biomedicos-registro__seccion biomedicos-registro__seccion--fotos">
+            <h3 class="biomedicos-registro__titulo">
+                <i class="bi bi-camera"></i>
+                Fotos del dispositivo
+            </h3>
+
+            <div class="biomedicos-registro__campos biomedicos-registro__campos--dos">
+                <div class="biomedicos-registro__campo">
+                    <label>Foto principal *</label>
+                    <div class="biomedicos-registro__foto controles_clic_desactivados texto_desactivados">
+                        <i class="bi bi-cloud-arrow-up"></i>
+                        <strong>Seleccionar imagen principal</strong>
+                        <small>Formatos permitidos: JPG, PNG</small>
+                    </div>
+                </div>
+                <div class="biomedicos-registro__campo">
+                    <label>Fotos adicionales</label>
+                    <div class="biomedicos-registro__foto controles_clic_desactivados texto_desactivados">
+                        <i class="bi bi-plus-circle"></i>
+                        <strong>Agregar fotos</strong>
+                        <small>Disponible en la siguiente etapa</small>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="biomedicos-registro__acciones">
+            <button class="formularioBotones-boton biomedicos-registro__boton" type="button" disabled>
+                <i class="bi bi-floppy"></i>
+                Guardar dispositivo
+            </button>
+            <a class="formularioBotones-boton biomedicos-registro__boton biomedicos-registro__boton--secundario"
+               href="{% url 'inicio_biomedicos' %}">
+                <i class="bi bi-arrow-left"></i>
+                Regresar
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock content %}

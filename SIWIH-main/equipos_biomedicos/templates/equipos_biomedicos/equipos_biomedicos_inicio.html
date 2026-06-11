@@ -1,9 +1,10 @@
 {% extends 'core/base.html' %}
+{% load static %}
 
 {% block title %}Equipos Biomédicos{% endblock title %}
 
 {% block content %}
-<div class="contenedor2">
+<div class="contenedor2 biomedicos-pagina">
     <div class="tituloFormulario">
         <div class="tituloFormulario-texto">
             <i class="bi bi-pc-display-horizontal"></i>
@@ -12,6 +13,122 @@
         <div class="tituloFormulario-subrallado"></div>
     </div>
 
-    <p>Módulo en construcción.</p>
+    <p class="biomedicos-descripcion">
+        Selecciona una opción para gestionar los dispositivos biomédicos.
+    </p>
+
+    <div class="biomedicos-acciones-rapidas">
+        <a class="formularioBotones-boton biomedicos-accion-rapida"
+           href="{% url 'escanear_qr_biomedicos' %}">
+            <i class="bi bi-qr-code-scan"></i>
+            <span>Escanear QR</span>
+        </a>
+        <a class="formularioBotones-boton biomedicos-accion-rapida"
+           href="{% url 'buscar_dispositivo_biomedicos' %}">
+            <i class="bi bi-search"></i>
+            <span>Buscar dispositivo</span>
+        </a>
+    </div>
+
+    <div class="biomedicos-submenus">
+        <section class="biomedicos-submenu">
+            <header class="biomedicos-submenu__encabezado">
+                <span class="biomedicos-submenu__icono">
+                    <i class="bi bi-clipboard2-check"></i>
+                </span>
+                <h3>Inventario</h3>
+            </header>
+
+            <div class="biomedicos-submenu__opciones">
+                <a class="biomedicos-submenu__opcion"
+                   href="{% url 'registrar_dispositivo_biomedicos' %}">
+                    <i class="bi bi-plus-square"></i>
+                    <span>Registrar dispositivo</span>
+                    <i class="bi bi-chevron-right"></i>
+                </a>
+                <span class="biomedicos-submenu__opcion controles_clic_desactivados texto_desactivados">
+                    <i class="bi bi-list-ul"></i>
+                    <span>Listado de dispositivos</span>
+                </span>
+                <span class="biomedicos-submenu__opcion controles_clic_desactivados texto_desactivados">
+                    <i class="bi bi-qr-code"></i>
+                    <span>Ver / Imprimir QR</span>
+                </span>
+                <span class="biomedicos-submenu__opcion controles_clic_desactivados texto_desactivados">
+                    <i class="bi bi-arrow-left-right"></i>
+                    <span>Traspaso de dispositivos</span>
+                </span>
+            </div>
+        </section>
+
+        <section class="biomedicos-submenu">
+            <header class="biomedicos-submenu__encabezado">
+                <span class="biomedicos-submenu__icono">
+                    <i class="bi bi-tools"></i>
+                </span>
+                <h3>Mantenimiento</h3>
+            </header>
+
+            <div class="biomedicos-submenu__opciones">
+                <span class="biomedicos-submenu__opcion controles_clic_desactivados texto_desactivados">
+                    <i class="bi bi-plus-square"></i>
+                    <span>Registrar mantenimiento</span>
+                </span>
+                <span class="biomedicos-submenu__opcion controles_clic_desactivados texto_desactivados">
+                    <i class="bi bi-calendar3"></i>
+                    <span>Programar mantenimiento</span>
+                </span>
+                <span class="biomedicos-submenu__opcion controles_clic_desactivados texto_desactivados">
+                    <i class="bi bi-clock"></i>
+                    <span>Mantenimientos pendientes</span>
+                </span>
+                <span class="biomedicos-submenu__opcion controles_clic_desactivados texto_desactivados">
+                    <i class="bi bi-file-earmark-text"></i>
+                    <span>Historial de mantenimiento</span>
+                </span>
+                <span class="biomedicos-submenu__opcion controles_clic_desactivados texto_desactivados">
+                    <i class="bi bi-bell"></i>
+                    <span>Alertas y vencimientos</span>
+                </span>
+            </div>
+        </section>
+
+        <section class="biomedicos-submenu">
+            <header class="biomedicos-submenu__encabezado">
+                <span class="biomedicos-submenu__icono">
+                    <i class="bi bi-bar-chart-line"></i>
+                </span>
+                <h3>Reportes</h3>
+            </header>
+
+            <div class="biomedicos-submenu__opciones">
+                <span class="biomedicos-submenu__opcion controles_clic_desactivados texto_desactivados">
+                    <i class="bi bi-file-earmark-bar-graph"></i>
+                    <span>Reporte de inventario</span>
+                </span>
+                <span class="biomedicos-submenu__opcion controles_clic_desactivados texto_desactivados">
+                    <i class="bi bi-file-earmark-medical"></i>
+                    <span>Reporte de mantenimiento</span>
+                </span>
+                <span class="biomedicos-submenu__opcion controles_clic_desactivados texto_desactivados">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    <span>Reporte de fallas</span>
+                </span>
+                <span class="biomedicos-submenu__opcion controles_clic_desactivados texto_desactivados">
+                    <i class="bi bi-currency-dollar"></i>
+                    <span>Reporte de costos</span>
+                </span>
+                <span class="biomedicos-submenu__opcion controles_clic_desactivados texto_desactivados">
+                    <i class="bi bi-shield-check"></i>
+                    <span>Garantías por vencer</span>
+                </span>
+            </div>
+        </section>
+    </div>
+
+    <p class="biomedicos-ayuda">
+        <i class="bi bi-info-circle"></i>
+        Las opciones atenuadas se habilitarán conforme construyamos cada formulario.
+    </p>
 </div>
 {% endblock content %}
