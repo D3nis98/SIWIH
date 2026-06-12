@@ -5075,6 +5075,7 @@ fieldset.referenciaRespuestaSeguimiento.ajustado {
 
 .biomedicos-submenus {
    display: grid;
+   font-family: var(--fuenteTablaTitulo);
    gap: 1.8rem;
    grid-template-columns: repeat(3, minmax(0, 1fr));
 }
@@ -5099,7 +5100,7 @@ fieldset.referenciaRespuestaSeguimiento.ajustado {
 }
 
 .biomedicos-submenu__encabezado h3 {
-   font-size: 2rem;
+   font-size: 2.2rem;
    margin: 0;
 }
 
@@ -5126,6 +5127,8 @@ fieldset.referenciaRespuestaSeguimiento.ajustado {
    border-bottom: .1rem solid var(--colorLinea);
    color: var(--negro);
    display: grid;
+   font-size: 1.7rem;
+   font-weight: 500;
    gap: 1.2rem;
    grid-template-columns: 2.4rem 1fr auto;
    min-height: 5.7rem;
