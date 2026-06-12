@@ -29,6 +29,13 @@ class EquiposBiomedicosViewsTests(TestCase):
 
                 self.assertEqual(respuesta.status_code, 200)
 
+    def test_detalle_inexistente_responde_404(self):
+        respuesta = self.client.get(
+            reverse('detalle_dispositivo_biomedicos', args=[999999])
+        )
+
+        self.assertEqual(respuesta.status_code, 404)
+
     def test_busqueda_conserva_la_consulta(self):
         respuesta = self.client.get(
             reverse('buscar_dispositivo_biomedicos'),

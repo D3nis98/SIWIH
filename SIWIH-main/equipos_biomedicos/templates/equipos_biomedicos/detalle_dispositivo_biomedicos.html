@@ -1,0 +1,146 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Detalle del Dispositivo Biomédico{% endblock title %}
+
+{% block content %}
+<div class="contenedor2 biomedicos-pagina">
+    <div class="biomedicos-detalle__encabezado">
+        <a class="biomedicos-detalle__regresar"
+           href="{% url 'listado_dispositivos_biomedicos' %}"
+           aria-label="Regresar al listado">
+            <i class="bi bi-arrow-left"></i>
+        </a>
+        <div>
+            <h2 class="sin-margen">Detalle del dispositivo</h2>
+            <p>Consulta la información completa del dispositivo biomédico.</p>
+        </div>
+    </div>
+
+    <section class="biomedicos-detalle__resumen">
+        <div class="biomedicos-detalle__imagen">
+            <i class="bi bi-pc-display-horizontal"></i>
+            <span>Sin fotografía</span>
+        </div>
+
+        <div class="biomedicos-detalle__identidad">
+            <h3>{{ dispositivo.nombre }}</h3>
+            <dl>
+                <div>
+                    <dt>Código:</dt>
+                    <dd>{{ dispositivo.codigo }}</dd>
+                </div>
+                <div>
+                    <dt>Estado:</dt>
+                    <dd><span class="biomedicos-estado">{{ dispositivo.get_estado_display }}</span></dd>
+                </div>
+                <div>
+                    <dt>Criticidad:</dt>
+                    <dd><span class="biomedicos-estado">{{ dispositivo.get_criticidad_display }}</span></dd>
+                </div>
+            </dl>
+        </div>
+
+        <div class="biomedicos-detalle__acciones">
+            <button class="formularioBotones-boton biomedicos-detalle__boton"
+                    type="button" disabled>
+                <i class="bi bi-pencil"></i>
+                Editar
+            </button>
+            <button class="formularioBotones-boton biomedicos-detalle__boton"
+                    type="button" disabled>
+                <i class="bi bi-qr-code"></i>
+                Ver / Imprimir QR
+            </button>
+            <button class="formularioBotones-boton biomedicos-detalle__boton"
+                    type="button" disabled>
+                <i class="bi bi-calendar-plus"></i>
+                Registrar mantenimiento
+            </button>
+            <a class="formularioBotones-boton biomedicos-detalle__boton biomedicos-detalle__boton--secundario"
+               href="{% url 'listado_dispositivos_biomedicos' %}">
+                <i class="bi bi-arrow-left"></i>
+                Regresar
+            </a>
+        </div>
+    </section>
+
+    <div class="biomedicos-detalle__secciones">
+        <section class="biomedicos-detalle__tarjeta">
+            <h3><i class="bi bi-info-circle"></i> Datos generales</h3>
+            <dl class="biomedicos-detalle__datos">
+                <div><dt>Tipo</dt><dd>{{ dispositivo.tipo }}</dd></div>
+                <div><dt>Marca</dt><dd>{{ dispositivo.marca }}</dd></div>
+                <div><dt>Modelo</dt><dd>{{ dispositivo.modelo }}</dd></div>
+                <div><dt>Número de serie</dt><dd>{{ dispositivo.numero_serie }}</dd></div>
+            </dl>
+        </section>
+
+        <section class="biomedicos-detalle__tarjeta">
+            <h3><i class="bi bi-geo-alt"></i> Ubicación y responsable</h3>
+            <dl class="biomedicos-detalle__datos">
+                <div>
+                    <dt>Tipo de área</dt>
+                    <dd>
+                        {% if asignacion_actual.area_clinica %}
+                            Clínica
+                        {% elif asignacion_actual.unidad_no_clinica %}
+                            No clínica
+                        {% else %}
+                            Sin asignación
+                        {% endif %}
+                    </dd>
+                </div>
+                <div><dt>Área</dt><dd>{{ asignacion_actual.ubicacion|default:"Sin asignación" }}</dd></div>
+                <div><dt>Empleado a cargo</dt><dd>{{ asignacion_actual.responsable|default:"Sin responsable" }}</dd></div>
+            </dl>
+        </section>
+
+        <section class="biomedicos-detalle__tarjeta">
+            <h3><i class="bi bi-file-earmark-text"></i> Información administrativa</h3>
+            <dl class="biomedicos-detalle__datos">
+                <div><dt>Fecha de instalación</dt><dd><i class="bi bi-calendar3"></i> {{ dispositivo.fecha_instalacion|date:"d/m/Y" }}</dd></div>
+                <div><dt>Fin de garantía</dt><dd><i class="bi bi-calendar3"></i> {{ dispositivo.fin_garantia|date:"d/m/Y"|default:"No indicada" }}</dd></div>
+                <div><dt>Costo</dt><dd>L {{ dispositivo.costo_adquisicion }}</dd></div>
+                <div><dt>Observaciones</dt><dd>{{ dispositivo.observaciones|default:"Sin observaciones" }}</dd></div>
+            </dl>
+        </section>
+
+        <section class="biomedicos-detalle__tarjeta">
+            <h3><i class="bi bi-tools"></i> Mantenimiento</h3>
+            <dl class="biomedicos-detalle__datos">
+                <div><dt>Frecuencia</dt><dd>Cada {{ dispositivo.frecuencia_mantenimiento_meses }} meses</dd></div>
+                <div><dt>Último mantenimiento</dt><dd>Pendiente de registrar</dd></div>
+                <div><dt>Próximo mantenimiento</dt><dd>Pendiente de programar</dd></div>
+            </dl>
+            <div class="biomedicos-detalle__mantenimiento">
+                <span class="biomedicos-estado">
+                    <i class="bi bi-info-circle"></i> Sin historial
+                </span>
+                <p>El mantenimiento se conectará en la siguiente etapa.</p>
+            </div>
+        </section>
+
+        <section class="biomedicos-detalle__tarjeta biomedicos-detalle__tarjeta--historial">
+            <h3><i class="bi bi-clock-history"></i> Historial reciente</h3>
+            <div class="biomedicos-detalle__tabla-contenedor">
+                <table class="dataTable stripe hover row-border biomedicos-detalle__tabla">
+                    <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Tipo de mantenimiento</th>
+                            <th>Descripción</th>
+                            <th>Técnico</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td colspan="5">Aún no existen mantenimientos registrados.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+</div>
+{% endblock content %}

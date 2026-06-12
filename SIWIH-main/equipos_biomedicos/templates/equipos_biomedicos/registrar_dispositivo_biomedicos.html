@@ -16,7 +16,15 @@
         <div class="tituloFormulario-subrallado"></div>
     </div>
 
-    <form class="biomedicos-registro" autocomplete="off">
+    <form class="biomedicos-registro" method="post" autocomplete="off">
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+            <div class="biomedicos-registro__errores biomedicos-registro__errores--general">
+                {{ form.non_field_errors }}
+            </div>
+        {% endif %}
+
         <section class="biomedicos-registro__seccion biomedicos-registro__seccion--informacion">
             <h3 class="biomedicos-registro__titulo">
                 <i class="bi bi-info-circle"></i>
@@ -26,29 +34,28 @@
             <div class="biomedicos-registro__campos biomedicos-registro__campos--dos">
                 <div class="biomedicos-registro__campo">
                     <label for="nombre_dispositivo">Nombre del dispositivo *</label>
-                    <input class="formularioCampo-text" id="nombre_dispositivo" type="text"
-                           placeholder="Ingrese el nombre del dispositivo">
+                    {{ form.nombre }}
+                    {{ form.nombre.errors }}
                 </div>
                 <div class="biomedicos-registro__campo">
                     <label for="tipo_dispositivo">Tipo de dispositivo *</label>
-                    <select class="formularioCampo-select" id="tipo_dispositivo">
-                        <option value="">Seleccione el tipo de dispositivo</option>
-                    </select>
+                    {{ form.tipo }}
+                    {{ form.tipo.errors }}
                 </div>
                 <div class="biomedicos-registro__campo">
                     <label for="marca_dispositivo">Marca *</label>
-                    <input class="formularioCampo-text" id="marca_dispositivo" type="text"
-                           placeholder="Ingrese la marca">
+                    {{ form.marca }}
+                    {{ form.marca.errors }}
                 </div>
                 <div class="biomedicos-registro__campo">
                     <label for="modelo_dispositivo">Modelo *</label>
-                    <input class="formularioCampo-text" id="modelo_dispositivo" type="text"
-                           placeholder="Ingrese el modelo">
+                    {{ form.modelo }}
+                    {{ form.modelo.errors }}
                 </div>
                 <div class="biomedicos-registro__campo biomedicos-registro__campo--completo">
                     <label for="serie_dispositivo">Número de serie *</label>
-                    <input class="formularioCampo-text" id="serie_dispositivo" type="text"
-                           placeholder="Ingrese el número de serie">
+                    {{ form.numero_serie }}
+                    {{ form.numero_serie.errors }}
                 </div>
             </div>
         </section>
@@ -61,16 +68,31 @@
 
             <div class="biomedicos-registro__campos">
                 <div class="biomedicos-registro__campo">
-                    <label for="area_dispositivo">Área *</label>
-                    <select class="formularioCampo-select" id="area_dispositivo">
-                        <option value="">Seleccione el área</option>
-                    </select>
+                    <label for="tipo_area_dispositivo">Tipo de área *</label>
+                    {{ form.tipo_area }}
+                    {{ form.tipo_area.errors }}
                 </div>
+
+                <div class="biomedicos-registro__campo"
+                     id="campo_area_clinica"
+                     hidden>
+                    <label for="area_clinica_dispositivo">Área clínica *</label>
+                    {{ form.area_clinica }}
+                    {{ form.area_clinica.errors }}
+                </div>
+
+                <div class="biomedicos-registro__campo"
+                     id="campo_area_no_clinica"
+                     hidden>
+                    <label for="area_no_clinica_dispositivo">Área no clínica *</label>
+                    {{ form.unidad_no_clinica }}
+                    {{ form.unidad_no_clinica.errors }}
+                </div>
+
                 <div class="biomedicos-registro__campo">
                     <label for="responsable_dispositivo">Empleado a cargo *</label>
-                    <select class="formularioCampo-select" id="responsable_dispositivo">
-                        <option value="">Seleccione el empleado a cargo</option>
-                    </select>
+                    {{ form.responsable }}
+                    {{ form.responsable.errors }}
                 </div>
             </div>
         </section>
@@ -84,21 +106,18 @@
             <div class="biomedicos-registro__campos biomedicos-registro__campos--dos">
                 <div class="biomedicos-registro__campo">
                     <label for="estado_dispositivo">Estado inicial *</label>
-                    <select class="formularioCampo-select" id="estado_dispositivo">
-                        <option value="">Seleccione el estado inicial</option>
-                    </select>
+                    {{ form.estado }}
+                    {{ form.estado.errors }}
                 </div>
                 <div class="biomedicos-registro__campo">
                     <label for="criticidad_dispositivo">Criticidad *</label>
-                    <select class="formularioCampo-select" id="criticidad_dispositivo">
-                        <option value="">Seleccione la criticidad</option>
-                    </select>
+                    {{ form.criticidad }}
+                    {{ form.criticidad.errors }}
                 </div>
                 <div class="biomedicos-registro__campo biomedicos-registro__campo--completo">
                     <label for="frecuencia_dispositivo">Frecuencia de mantenimiento *</label>
-                    <select class="formularioCampo-select" id="frecuencia_dispositivo">
-                        <option value="">Seleccione la frecuencia de mantenimiento</option>
-                    </select>
+                    {{ form.frecuencia_mantenimiento_meses }}
+                    {{ form.frecuencia_mantenimiento_meses.errors }}
                 </div>
             </div>
         </section>
@@ -112,24 +131,26 @@
             <div class="biomedicos-registro__campos biomedicos-registro__campos--dos">
                 <div class="biomedicos-registro__campo">
                     <label for="instalacion_dispositivo">Fecha de instalación *</label>
-                    <input class="formularioCampo-date" id="instalacion_dispositivo" type="date">
+                    {{ form.fecha_instalacion }}
+                    {{ form.fecha_instalacion.errors }}
                 </div>
                 <div class="biomedicos-registro__campo">
                     <label for="garantia_dispositivo">Fin de garantía</label>
-                    <input class="formularioCampo-date" id="garantia_dispositivo" type="date">
+                    {{ form.fin_garantia }}
+                    {{ form.fin_garantia.errors }}
                 </div>
                 <div class="biomedicos-registro__campo">
                     <label for="costo_dispositivo">Costo de adquisición *</label>
                     <div class="biomedicos-registro__costo">
                         <span>L/</span>
-                        <input class="formularioCampo-text" id="costo_dispositivo" type="number"
-                               min="0" step="0.01" placeholder="Ingrese el costo">
+                        {{ form.costo_adquisicion }}
                     </div>
+                    {{ form.costo_adquisicion.errors }}
                 </div>
                 <div class="biomedicos-registro__campo biomedicos-registro__campo--completo">
                     <label for="observaciones_dispositivo">Observaciones</label>
-                    <textarea class="formularioCampo-text no-resize" id="observaciones_dispositivo"
-                              rows="4" placeholder="Ingrese observaciones adicionales (opcional)"></textarea>
+                    {{ form.observaciones }}
+                    {{ form.observaciones.errors }}
                 </div>
             </div>
         </section>
@@ -142,7 +163,7 @@
 
             <div class="biomedicos-registro__campos biomedicos-registro__campos--dos">
                 <div class="biomedicos-registro__campo">
-                    <label>Foto principal *</label>
+                    <label>Foto principal</label>
                     <div class="biomedicos-registro__foto controles_clic_desactivados texto_desactivados">
                         <i class="bi bi-cloud-arrow-up"></i>
                         <strong>Seleccionar imagen principal</strong>
@@ -161,7 +182,7 @@
         </section>
 
         <div class="biomedicos-registro__acciones">
-            <button class="formularioBotones-boton biomedicos-registro__boton" type="button" disabled>
+            <button class="formularioBotones-boton biomedicos-registro__boton" type="submit">
                 <i class="bi bi-floppy"></i>
                 Guardar dispositivo
             </button>
@@ -174,3 +195,35 @@
     </form>
 </div>
 {% endblock content %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const tipoArea = document.getElementById('tipo_area_dispositivo');
+    const campoClinica = document.getElementById('campo_area_clinica');
+    const campoNoClinica = document.getElementById('campo_area_no_clinica');
+    const areaClinica = document.getElementById('area_clinica_dispositivo');
+    const areaNoClinica = document.getElementById('area_no_clinica_dispositivo');
+
+    function actualizarSelectorArea() {
+        const mostrarClinica = tipoArea.value === 'clinica';
+        const mostrarNoClinica = tipoArea.value === 'no_clinica';
+
+        campoClinica.hidden = !mostrarClinica;
+        campoNoClinica.hidden = !mostrarNoClinica;
+        areaClinica.disabled = !mostrarClinica;
+        areaNoClinica.disabled = !mostrarNoClinica;
+
+        if (!mostrarClinica) {
+            areaClinica.value = '';
+        }
+        if (!mostrarNoClinica) {
+            areaNoClinica.value = '';
+        }
+    }
+
+    tipoArea.addEventListener('change', actualizarSelectorArea);
+    actualizarSelectorArea();
+});
+</script>
+{% endblock extra_js %}

@@ -5400,6 +5400,21 @@ a.biomedicos-submenu__opcion:hover {
    grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
+.biomedicos-registro__errores--general {
+   grid-column: 1 / -1;
+}
+
+.biomedicos-registro .errorlist {
+   background-color: rgba(220, 53, 69, .12);
+   border: .1rem solid rgba(220, 53, 69, .45);
+   border-radius: .5rem;
+   color: #a71d2a;
+   font-size: 1.3rem;
+   list-style: none;
+   margin: 0;
+   padding: .6rem .8rem;
+}
+
 .biomedicos-registro__seccion {
    background-color: var(--blanco);
    border: .1rem solid var(--colorLinea);
@@ -5435,6 +5450,10 @@ a.biomedicos-submenu__opcion:hover {
    flex-direction: column;
    gap: .6rem;
    min-width: 0;
+}
+
+.biomedicos-registro__campo[hidden] {
+   display: none;
 }
 
 .biomedicos-registro__campo--completo {
@@ -5770,5 +5789,286 @@ table.dataTable tbody td.biomedicos-listado__vacio {
    .biomedicos-listado__pie {
       align-items: flex-start;
       flex-direction: column;
+   }
+}
+
+
+/* Vista de detalle de dispositivos biomedicos */
+
+.biomedicos-listado__demo {
+   font-size: 1.4rem;
+   height: auto;
+   justify-content: center;
+   margin-top: 1rem;
+   min-height: 4rem;
+   padding: .8rem 1.5rem;
+   text-transform: none;
+   width: auto;
+}
+
+.biomedicos-detalle__encabezado {
+   align-items: center;
+   display: grid;
+   gap: 1.5rem;
+   grid-template-columns: auto 1fr auto;
+}
+
+.biomedicos-detalle__encabezado p {
+   color: var(--colorTextoMenu);
+   margin: .4rem 0 0;
+}
+
+.biomedicos-detalle__regresar {
+   align-items: center;
+   background-color: var(--blanco);
+   border: .1rem solid var(--colorTablaceldaBorde);
+   border-radius: .8rem;
+   color: var(--negro);
+   display: flex;
+   font-size: 2rem;
+   height: 4.2rem;
+   justify-content: center;
+   text-decoration: none;
+   width: 4.2rem;
+}
+
+.biomedicos-detalle__demo {
+   background-color: var(--colorMenuHover);
+   border-radius: 5rem;
+   color: var(--colorTextoMenu);
+   font-size: 1.3rem;
+   font-weight: 700;
+   padding: .6rem 1.2rem;
+}
+
+.biomedicos-detalle__resumen,
+.biomedicos-detalle__tarjeta {
+   background-color: var(--blanco);
+   border: .1rem solid var(--colorLinea);
+   border-radius: 1.2rem;
+   padding: 1.8rem;
+}
+
+.biomedicos-detalle__resumen {
+   align-items: center;
+   display: grid;
+   gap: 2.5rem;
+   grid-template-columns: 22rem minmax(25rem, 1fr) minmax(22rem, auto);
+}
+
+.biomedicos-detalle__imagen {
+   align-items: center;
+   aspect-ratio: 1.2;
+   background-color: var(--colorMenuHover);
+   border-radius: 1rem;
+   color: var(--colorTextoMenu);
+   display: flex;
+   flex-direction: column;
+   gap: 1rem;
+   justify-content: center;
+}
+
+.biomedicos-detalle__imagen i {
+   font-size: 7rem;
+}
+
+.biomedicos-detalle__identidad h3 {
+   font-size: 2.5rem;
+   margin: 0 0 1.5rem;
+}
+
+.biomedicos-detalle__identidad dl,
+.biomedicos-detalle__datos {
+   margin: 0;
+}
+
+.biomedicos-detalle__identidad dl {
+   display: flex;
+   flex-direction: column;
+   gap: 1.2rem;
+}
+
+.biomedicos-detalle__identidad dl > div {
+   align-items: center;
+   display: flex;
+   gap: .8rem;
+}
+
+.biomedicos-detalle__identidad dt,
+.biomedicos-detalle__identidad dd,
+.biomedicos-detalle__datos dt,
+.biomedicos-detalle__datos dd {
+   margin: 0;
+}
+
+.biomedicos-detalle__identidad dt {
+   font-weight: 700;
+}
+
+.biomedicos-detalle__acciones {
+   display: grid;
+   gap: .8rem;
+   grid-template-columns: repeat(2, minmax(14rem, 1fr));
+}
+
+.biomedicos-detalle__boton {
+   font-size: 1.3rem;
+   height: auto;
+   justify-content: center;
+   min-height: 4.4rem;
+   padding: .8rem 1rem;
+   text-transform: none;
+   width: auto;
+}
+
+.biomedicos-detalle__boton--secundario {
+   background-color: var(--blanco);
+   border: .1rem solid var(--colorTablaceldaBorde);
+   color: var(--negro);
+}
+
+.biomedicos-estado {
+   border: .1rem solid transparent;
+   border-radius: 5rem;
+   display: inline-flex;
+   font-size: 1.2rem;
+   font-weight: 700;
+   gap: .4rem;
+   padding: .3rem .8rem;
+}
+
+.biomedicos-estado--operativo,
+.biomedicos-estado--vigente {
+   background-color: rgba(39, 205, 64, .12);
+   border-color: rgb(39, 205, 64);
+   color: #146c43;
+}
+
+.biomedicos-estado--alta {
+   background-color: rgba(220, 53, 69, .12);
+   border-color: rgba(220, 53, 69, .9);
+   color: #a71d2a;
+}
+
+.biomedicos-detalle__secciones {
+   display: grid;
+   gap: 1.5rem;
+   grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.biomedicos-detalle__tarjeta h3 {
+   align-items: center;
+   border-bottom: .1rem solid var(--colorLinea);
+   display: flex;
+   font-size: 1.8rem;
+   gap: .8rem;
+   margin: 0 0 1rem;
+   padding-bottom: 1rem;
+}
+
+.biomedicos-detalle__tarjeta h3 i {
+   font-size: 2.2rem;
+}
+
+.biomedicos-detalle__datos > div {
+   border-bottom: .1rem solid var(--colorLinea);
+   display: grid;
+   gap: 1rem;
+   grid-template-columns: minmax(10rem, .8fr) minmax(0, 1.2fr);
+   padding: 1rem 0;
+}
+
+.biomedicos-detalle__datos > div:last-child {
+   border-bottom: 0;
+}
+
+.biomedicos-detalle__datos dt {
+   color: var(--colorTextoMenu);
+   font-weight: 600;
+}
+
+.biomedicos-detalle__datos dd {
+   overflow-wrap: anywhere;
+}
+
+.biomedicos-detalle__mantenimiento {
+   align-items: center;
+   display: flex;
+   gap: 1rem;
+   margin-top: 2rem;
+}
+
+.biomedicos-detalle__mantenimiento p {
+   color: var(--colorTextoMenu);
+   margin: 0;
+}
+
+.biomedicos-detalle__tarjeta--historial {
+   grid-column: span 2;
+}
+
+.biomedicos-detalle__tabla-contenedor {
+   overflow-x: auto;
+}
+
+.biomedicos-detalle__tabla {
+   min-width: 75rem;
+   width: 100%;
+}
+
+.biomedicos-detalle__tabla thead th,
+.biomedicos-detalle__tabla tbody td {
+   font-size: 1.3rem;
+}
+
+@media (max-width: 1300px) {
+   .biomedicos-detalle__resumen {
+      grid-template-columns: 18rem 1fr;
+   }
+
+   .biomedicos-detalle__acciones {
+      grid-column: 1 / -1;
+      grid-template-columns: repeat(4, minmax(14rem, 1fr));
+   }
+}
+
+@media (max-width: 1050px) {
+   .biomedicos-detalle__secciones {
+      grid-template-columns: 1fr;
+   }
+
+   .biomedicos-detalle__tarjeta--historial {
+      grid-column: auto;
+   }
+}
+
+@media (max-width: 800px) {
+   .biomedicos-detalle__resumen {
+      grid-template-columns: 1fr;
+   }
+
+   .biomedicos-detalle__imagen {
+      max-width: 30rem;
+      width: 100%;
+   }
+
+   .biomedicos-detalle__acciones {
+      grid-column: auto;
+      grid-template-columns: 1fr;
+   }
+}
+
+@media (max-width: 600px) {
+   .biomedicos-detalle__encabezado {
+      grid-template-columns: auto 1fr;
+   }
+
+   .biomedicos-detalle__demo {
+      grid-column: 1 / -1;
+      width: max-content;
+   }
+
+   .biomedicos-detalle__datos > div {
+      grid-template-columns: 1fr;
    }
 }
