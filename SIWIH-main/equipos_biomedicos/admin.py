@@ -19,11 +19,18 @@ class DispositivoAdmin(admin.ModelAdmin):
         "marca",
         "modelo",
         "numero_serie",
+        "inventario_bienes_nacionales",
         "estado",
         "criticidad",
     )
     list_filter = ("tipo", "estado", "criticidad")
-    search_fields = ("nombre", "marca", "modelo", "numero_serie")
+    search_fields = (
+        "nombre",
+        "marca",
+        "modelo",
+        "numero_serie",
+        "inventario_bienes_nacionales",
+    )
     autocomplete_fields = ("tipo", "creado_por", "modificado_por")
     readonly_fields = ("fecha_creado", "fecha_modificado")
 
@@ -47,6 +54,7 @@ class AsignacionDispositivoAdmin(admin.ModelAdmin):
     search_fields = (
         "dispositivo__nombre",
         "dispositivo__numero_serie",
+        "dispositivo__inventario_bienes_nacionales",
         "responsable__dni",
         "responsable__primer_nombre",
         "responsable__primer_apellido",

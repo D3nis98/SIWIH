@@ -5684,6 +5684,12 @@ a.biomedicos-submenu__opcion:hover {
    width: auto;
 }
 
+.biomedicos-listado__boton-filtro--secundario {
+   background-color: var(--blanco);
+   border: .1rem solid var(--colorTablaceldaBorde);
+   color: var(--negro);
+}
+
 .biomedicos-listado__boton-filtro i {
    font-size: 1.8rem;
    padding-top: 0;
@@ -5695,13 +5701,47 @@ a.biomedicos-submenu__opcion:hover {
 }
 
 .biomedicos-listado__tabla {
-   min-width: 130rem;
+   min-width: 150rem;
    width: 100%;
 }
 
 .biomedicos-listado__tabla thead th {
    font-size: 1.3rem;
    white-space: nowrap;
+}
+
+.biomedicos-listado__tabla tbody td {
+   vertical-align: middle;
+}
+
+.biomedicos-listado__codigo {
+   color: var(--colorBoton);
+   font-weight: 800;
+   text-decoration: none;
+   white-space: nowrap;
+}
+
+.biomedicos-listado__acciones {
+   display: flex;
+   gap: .6rem;
+}
+
+.biomedicos-listado__accion {
+   align-items: center;
+   background-color: var(--blanco);
+   border: .1rem solid var(--colorTablaceldaBorde);
+   border-radius: .6rem;
+   color: var(--colorBoton);
+   display: inline-flex;
+   height: 3.2rem;
+   justify-content: center;
+   text-decoration: none;
+   width: 3.2rem;
+}
+
+.biomedicos-listado__accion:disabled {
+   cursor: not-allowed;
+   opacity: .55;
 }
 
 table.dataTable tbody td.biomedicos-listado__vacio {
@@ -5736,7 +5776,8 @@ table.dataTable tbody td.biomedicos-listado__vacio {
    gap: .5rem;
 }
 
-.biomedicos-listado__paginacion button {
+.biomedicos-listado__paginacion a,
+.biomedicos-listado__paginacion span {
    align-items: center;
    background-color: var(--blanco);
    border: .1rem solid var(--colorLinea);
@@ -5745,6 +5786,7 @@ table.dataTable tbody td.biomedicos-listado__vacio {
    display: flex;
    height: 3.2rem;
    justify-content: center;
+   text-decoration: none;
    width: 3.2rem;
 }
 
@@ -5948,6 +5990,18 @@ table.dataTable tbody td.biomedicos-listado__vacio {
    background-color: rgba(220, 53, 69, .12);
    border-color: rgba(220, 53, 69, .9);
    color: #a71d2a;
+}
+
+.biomedicos-estado--media {
+   background-color: rgba(255, 193, 7, .18);
+   border-color: rgba(255, 193, 7, .95);
+   color: #8a5a00;
+}
+
+.biomedicos-estado--inactivo {
+   background-color: rgba(108, 117, 125, .14);
+   border-color: rgba(108, 117, 125, .85);
+   color: #495057;
 }
 
 .biomedicos-detalle__secciones {

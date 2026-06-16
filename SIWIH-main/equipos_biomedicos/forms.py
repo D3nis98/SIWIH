@@ -11,6 +11,7 @@ from .models import (
     Dispositivo,
     EstadoDispositivo,
     TipoDispositivo,
+    normalizar_inventario_bienes_nacionales,
 )
 
 
@@ -70,6 +71,7 @@ class DispositivoCreateForm(forms.ModelForm):
             attrs={
                 "class": "formularioCampo-select",
                 "id": "responsable_dispositivo",
+                "data-placeholder": "Buscar por ID, DNI o nombre",
             }
         ),
     )
@@ -93,6 +95,7 @@ class DispositivoCreateForm(forms.ModelForm):
             "marca",
             "modelo",
             "numero_serie",
+            "inventario_bienes_nacionales",
             "estado",
             "criticidad",
             "frecuencia_mantenimiento_meses",
@@ -119,21 +122,28 @@ class DispositivoCreateForm(forms.ModelForm):
                 attrs={
                     "class": "formularioCampo-text",
                     "id": "marca_dispositivo",
-                    "placeholder": "Ingrese la marca",
+                    "placeholder": "Opcional; se guardará como Indefinido",
                 }
             ),
             "modelo": forms.TextInput(
                 attrs={
                     "class": "formularioCampo-text",
                     "id": "modelo_dispositivo",
-                    "placeholder": "Ingrese el modelo",
+                    "placeholder": "Opcional; se guardará como Indefinido",
                 }
             ),
             "numero_serie": forms.TextInput(
                 attrs={
                     "class": "formularioCampo-text",
                     "id": "serie_dispositivo",
-                    "placeholder": "Ingrese el número de serie",
+                    "placeholder": "Opcional; se mostrará como Indefinido",
+                }
+            ),
+            "inventario_bienes_nacionales": forms.TextInput(
+                attrs={
+                    "class": "formularioCampo-text",
+                    "id": "inventario_bienes_nacionales",
+                    "placeholder": "Ej. F/212300 (opcional)",
                 }
             ),
             "estado": forms.Select(
@@ -211,13 +221,19 @@ class DispositivoCreateForm(forms.ModelForm):
         self.fields["unidad_no_clinica"].queryset = Unidad.objects.filter(
             estado=EstadoRegistro.ACTIVO
         ).exclude(tipo=TipoUnidad.CLINICA).order_by("nombre_unidad")
-        self.fields["responsable"].queryset = Empleado.objects.filter(
-            estado=EstadoRegistro.ACTIVO
-        ).order_by("primer_nombre", "primer_apellido")
+        responsable_id = None
+        if self.is_bound:
+            responsable_id = self.data.get(self.add_prefix("responsable"))
+
+        if responsable_id and responsable_id.isdigit():
+            self.fields["responsable"].queryset = Empleado.objects.filter(
+                estado=EstadoRegistro.ACTIVO,
+                pk=responsable_id,
+            )
 
         self.fields["area_clinica"].empty_label = "Seleccione el área clínica"
         self.fields["unidad_no_clinica"].empty_label = "Seleccione el área no clínica"
-        self.fields["responsable"].empty_label = "Seleccione el empleado a cargo"
+        self.fields["responsable"].empty_label = "Buscar empleado a cargo"
 
     def clean_fecha_instalacion(self):
         fecha_instalacion = self.cleaned_data["fecha_instalacion"]
@@ -226,6 +242,20 @@ class DispositivoCreateForm(forms.ModelForm):
                 "La fecha de instalación no puede ser futura."
             )
         return fecha_instalacion
+
+    def clean_marca(self):
+        return (self.cleaned_data.get("marca") or "").strip() or "Indefinido"
+
+    def clean_modelo(self):
+        return (self.cleaned_data.get("modelo") or "").strip() or "Indefinido"
+
+    def clean_numero_serie(self):
+        return (self.cleaned_data.get("numero_serie") or "").strip() or None
+
+    def clean_inventario_bienes_nacionales(self):
+        return normalizar_inventario_bienes_nacionales(
+            self.cleaned_data.get("inventario_bienes_nacionales")
+        )
 
     def clean(self):
         cleaned_data = super().clean()

@@ -71,7 +71,8 @@
                 <div><dt>Tipo</dt><dd>{{ dispositivo.tipo }}</dd></div>
                 <div><dt>Marca</dt><dd>{{ dispositivo.marca }}</dd></div>
                 <div><dt>Modelo</dt><dd>{{ dispositivo.modelo }}</dd></div>
-                <div><dt>Número de serie</dt><dd>{{ dispositivo.numero_serie }}</dd></div>
+                <div><dt>Número de serie</dt><dd>{{ dispositivo.numero_serie|default:"Indefinido" }}</dd></div>
+                <div><dt>Inventario de bienes nacionales</dt><dd>{{ dispositivo.inventario_bienes_nacionales|default:"No aplica" }}</dd></div>
             </dl>
         </section>
 

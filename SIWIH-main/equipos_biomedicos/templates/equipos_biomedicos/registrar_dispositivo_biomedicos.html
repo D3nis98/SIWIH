@@ -43,19 +43,24 @@
                     {{ form.tipo.errors }}
                 </div>
                 <div class="biomedicos-registro__campo">
-                    <label for="marca_dispositivo">Marca *</label>
+                    <label for="marca_dispositivo">Marca</label>
                     {{ form.marca }}
                     {{ form.marca.errors }}
                 </div>
                 <div class="biomedicos-registro__campo">
-                    <label for="modelo_dispositivo">Modelo *</label>
+                    <label for="modelo_dispositivo">Modelo</label>
                     {{ form.modelo }}
                     {{ form.modelo.errors }}
                 </div>
-                <div class="biomedicos-registro__campo biomedicos-registro__campo--completo">
-                    <label for="serie_dispositivo">Número de serie *</label>
+                <div class="biomedicos-registro__campo">
+                    <label for="serie_dispositivo">Número de serie</label>
                     {{ form.numero_serie }}
                     {{ form.numero_serie.errors }}
+                </div>
+                <div class="biomedicos-registro__campo">
+                    <label for="inventario_bienes_nacionales">Inventario de bienes nacionales</label>
+                    {{ form.inventario_bienes_nacionales }}
+                    {{ form.inventario_bienes_nacionales.errors }}
                 </div>
             </div>
         </section>
@@ -224,6 +229,41 @@ document.addEventListener('DOMContentLoaded', function () {
 
     tipoArea.addEventListener('change', actualizarSelectorArea);
     actualizarSelectorArea();
+
+    const responsableSelect = $('#responsable_dispositivo');
+
+    if (responsableSelect.length && responsableSelect.select2) {
+        responsableSelect.select2({
+            width: '100%',
+            placeholder: 'Buscar por ID, DNI o nombre',
+            minimumInputLength: 1,
+            ajax: {
+                url: "{% url 'buscar_empleados_biomedicos' %}",
+                dataType: 'json',
+                delay: 250,
+                data: function (params) {
+                    return {
+                        q: params.term || ''
+                    };
+                },
+                processResults: function (data) {
+                    return data;
+                },
+                cache: true
+            },
+            language: {
+                inputTooShort: function () {
+                    return 'Escriba el ID, DNI o nombre del empleado';
+                },
+                noResults: function () {
+                    return 'No se encontraron empleados';
+                },
+                searching: function () {
+                    return 'Buscando...';
+                }
+            }
+        });
+    }
 });
 </script>
 {% endblock extra_js %}

@@ -28,4 +28,9 @@ urlpatterns = [
         views.buscar_dispositivo,
         name='buscar_dispositivo_biomedicos'
     ),
+    path(
+        'buscar-empleados/',
+        views.buscar_empleados,
+        name='buscar_empleados_biomedicos'
+    ),
 ]

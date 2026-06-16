@@ -10,6 +10,22 @@ from rrhh.models import Empleado
 from servicio.models import Area_atencion, Unidad
 
 
+def normalizar_inventario_bienes_nacionales(valor):
+    valor = (valor or "").strip()
+
+    if not valor:
+        return None
+
+    cantidad_digitos = sum(caracter.isdigit() for caracter in valor)
+    if cantidad_digitos > 15:
+        raise ValidationError(
+            "El inventario de bienes nacionales no puede contener más de "
+            "15 números."
+        )
+
+    return valor
+
+
 class EstadoDispositivo(models.IntegerChoices):
     OPERATIVO = 1, "Operativo"
     EN_MANTENIMIENTO = 2, "En mantenimiento"
@@ -44,9 +60,15 @@ class Dispositivo(models.Model):
         on_delete=models.PROTECT,
         related_name="dispositivos",
     )
-    marca = models.CharField(max_length=80)
-    modelo = models.CharField(max_length=100)
-    numero_serie = models.CharField(max_length=100, unique=True)
+    marca = models.CharField(max_length=80, blank=True, default="Indefinido")
+    modelo = models.CharField(max_length=100, blank=True, default="Indefinido")
+    numero_serie = models.CharField(max_length=100, unique=True, null=True, blank=True)
+    inventario_bienes_nacionales = models.CharField(
+        max_length=30,
+        unique=True,
+        null=True,
+        blank=True,
+    )
     estado = models.PositiveSmallIntegerField(
         choices=EstadoDispositivo.choices,
         default=EstadoDispositivo.OPERATIVO,
@@ -115,6 +137,18 @@ class Dispositivo(models.Model):
 
     def clean(self):
         errores = {}
+        self.marca = (self.marca or "").strip() or "Indefinido"
+        self.modelo = (self.modelo or "").strip() or "Indefinido"
+        self.numero_serie = (self.numero_serie or "").strip() or None
+
+        try:
+            self.inventario_bienes_nacionales = (
+                normalizar_inventario_bienes_nacionales(
+                    self.inventario_bienes_nacionales
+                )
+            )
+        except ValidationError as error:
+            errores["inventario_bienes_nacionales"] = error
 
         if (
             self.fecha_instalacion
@@ -124,6 +158,19 @@ class Dispositivo(models.Model):
             errores["fin_garantia"] = (
                 "El fin de garantía no puede ser anterior a la fecha de instalación."
             )
+
+        if self.inventario_bienes_nacionales:
+            inventario_existente = Dispositivo.objects.filter(
+                inventario_bienes_nacionales__iexact=(
+                    self.inventario_bienes_nacionales
+                )
+            ).exclude(pk=self.pk)
+
+            if inventario_existente.exists():
+                errores["inventario_bienes_nacionales"] = (
+                    "Ya existe un dispositivo registrado con este inventario "
+                    "de bienes nacionales."
+                )
 
         if errores:
             raise ValidationError(errores)
