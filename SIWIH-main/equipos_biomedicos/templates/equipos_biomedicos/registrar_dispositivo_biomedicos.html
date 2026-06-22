@@ -1,17 +1,17 @@
 {% extends 'core/base.html' %}
 
-{% block title %}Registrar Dispositivo Biomédico{% endblock title %}
+{% block title %}Registrar equipo{% endblock title %}
 
 {% block content %}
 <div class="contenedor2 biomedicos-pagina">
     <a class="biomedicos-volver" href="{% url 'inicio_biomedicos' %}">
-        <i class="bi bi-arrow-left"></i> Equipos Biomédicos
+        <i class="bi bi-arrow-left"></i> Equipos
     </a>
 
     <div class="tituloFormulario">
         <div class="tituloFormulario-texto">
             <i class="bi bi-clipboard2-plus"></i>
-            <h2 class="sin-margen">Registrar dispositivo</h2>
+            <h2 class="sin-margen">Registrar equipo</h2>
         </div>
         <div class="tituloFormulario-subrallado"></div>
     </div>
@@ -28,19 +28,19 @@
         <section class="biomedicos-registro__seccion biomedicos-registro__seccion--informacion">
             <h3 class="biomedicos-registro__titulo">
                 <i class="bi bi-info-circle"></i>
-                Información del dispositivo
+                Información del equipo
             </h3>
 
             <div class="biomedicos-registro__campos biomedicos-registro__campos--dos">
                 <div class="biomedicos-registro__campo">
-                    <label for="nombre_dispositivo">Nombre del dispositivo *</label>
-                    {{ form.nombre }}
-                    {{ form.nombre.errors }}
-                </div>
-                <div class="biomedicos-registro__campo">
-                    <label for="tipo_dispositivo">Tipo de dispositivo *</label>
+                    <label for="tipo_dispositivo">Tipo de equipo *</label>
                     {{ form.tipo }}
                     {{ form.tipo.errors }}
+                </div>
+                <div class="biomedicos-registro__campo">
+                    <label for="tipo_tecnologia_dispositivo">Tipo de tecnología *</label>
+                    {{ form.tipo_tecnologia }}
+                    {{ form.tipo_tecnologia.errors }}
                 </div>
                 <div class="biomedicos-registro__campo">
                     <label for="marca_dispositivo">Marca</label>
@@ -61,6 +61,11 @@
                     <label for="inventario_bienes_nacionales">Inventario de bienes nacionales</label>
                     {{ form.inventario_bienes_nacionales }}
                     {{ form.inventario_bienes_nacionales.errors }}
+                </div>
+                <div class="biomedicos-registro__campo">
+                    <label for="inventario_numero_ficha">Inventario número de ficha</label>
+                    {{ form.inventario_numero_ficha }}
+                    {{ form.inventario_numero_ficha.errors }}
                 </div>
             </div>
         </section>
@@ -120,7 +125,7 @@
                     {{ form.criticidad.errors }}
                 </div>
                 <div class="biomedicos-registro__campo biomedicos-registro__campo--completo">
-                    <label for="frecuencia_dispositivo">Frecuencia de mantenimiento *</label>
+                    <label for="frecuencia_dispositivo">Frecuencia de mantenimiento</label>
                     {{ form.frecuencia_mantenimiento_meses }}
                     {{ form.frecuencia_mantenimiento_meses.errors }}
                 </div>
@@ -163,7 +168,7 @@
         <section class="biomedicos-registro__seccion biomedicos-registro__seccion--fotos">
             <h3 class="biomedicos-registro__titulo">
                 <i class="bi bi-camera"></i>
-                Fotos del dispositivo
+                Fotos del equipo
             </h3>
 
             <div class="biomedicos-registro__campos biomedicos-registro__campos--dos">
@@ -189,7 +194,7 @@
         <div class="biomedicos-registro__acciones">
             <button class="formularioBotones-boton biomedicos-registro__boton" type="submit">
                 <i class="bi bi-floppy"></i>
-                Guardar dispositivo
+                Guardar equipo
             </button>
             <a class="formularioBotones-boton biomedicos-registro__boton biomedicos-registro__boton--secundario"
                href="{% url 'inicio_biomedicos' %}">

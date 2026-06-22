@@ -1,18 +1,18 @@
 {% extends 'core/base.html' %}
 {% load static %}
 
-{% block title %}Buscar Equipo Biomédico{% endblock title %}
+{% block title %}Buscar equipo{% endblock title %}
 
 {% block content %}
 <div class="contenedor2 biomedicos-pagina">
     <a class="biomedicos-volver" href="{% url 'inicio_biomedicos' %}">
-        <i class="bi bi-arrow-left"></i> Equipos Biomédicos
+        <i class="bi bi-arrow-left"></i> Equipos
     </a>
 
     <div class="tituloFormulario">
         <div class="tituloFormulario-texto">
             <i class="bi bi-search"></i>
-            <h2 class="sin-margen">Buscar dispositivo</h2>
+            <h2 class="sin-margen">Buscar equipo</h2>
         </div>
         <div class="tituloFormulario-subrallado"></div>
     </div>
@@ -20,12 +20,12 @@
     <section class="biomedicos-busqueda">
         <div>
             <p class="biomedicos-etiqueta">Consulta rápida</p>
-            <h3>¿Qué dispositivo deseas encontrar?</h3>
-            <p>Busca por código interno, número de serie, nombre, marca o modelo.</p>
+            <h3>¿Qué equipo deseas encontrar?</h3>
+            <p>Busca por código interno, inventarios, número de serie, tipo, marca o modelo.</p>
         </div>
 
         <form class="biomedicos-busqueda__formulario" method="get">
-            <label for="id_busqueda_dispositivo">Datos del dispositivo</label>
+            <label for="id_busqueda_dispositivo">Datos del equipo</label>
             <div class="biomedicos-busqueda__campo">
                 <i class="bi bi-search"></i>
                 <input
@@ -34,7 +34,7 @@
                     name="q"
                     type="search"
                     value="{{ consulta }}"
-                    placeholder="Ej. EQ-001, monitor, serie o modelo"
+                    placeholder="Ej. DISP-00001, F/212300, monitor, serie o modelo"
                     autocomplete="off"
                 >
                 <button class="formularioBotones-boton biomedicos-busqueda__boton" type="submit">
@@ -50,14 +50,14 @@
             <i class="bi bi-inbox"></i>
             <h3>Sin resultados para “{{ consulta }}”</h3>
             <p>
-                Aún no existen dispositivos registrados. La búsqueda quedará
+                Aún no existen equipos registrados. La búsqueda quedará
                 conectada cuando construyamos el inventario.
             </p>
         </div>
     {% else %}
         <div class="biomedicos-vacio centrar">
             <i class="bi bi-upc-scan"></i>
-            <h3>Ingresa los datos del dispositivo</h3>
+            <h3>Ingresa los datos del equipo</h3>
             <p>Los resultados aparecerán en este espacio.</p>
         </div>
     {% endif %}

@@ -1,6 +1,12 @@
 from django.contrib import admin
 
-from .models import AsignacionDispositivo, Dispositivo, TipoDispositivo
+from .models import (
+    AsignacionDispositivo,
+    Dispositivo,
+    MarcaDispositivo,
+    ModeloDispositivo,
+    TipoDispositivo,
+)
 
 
 @admin.register(TipoDispositivo)
@@ -10,28 +16,44 @@ class TipoDispositivoAdmin(admin.ModelAdmin):
     search_fields = ("nombre",)
 
 
+@admin.register(MarcaDispositivo)
+class MarcaDispositivoAdmin(admin.ModelAdmin):
+    list_display = ("nombre", "activo")
+    list_filter = ("activo",)
+    search_fields = ("nombre",)
+
+
+@admin.register(ModeloDispositivo)
+class ModeloDispositivoAdmin(admin.ModelAdmin):
+    list_display = ("nombre", "activo")
+    list_filter = ("activo",)
+    search_fields = ("nombre",)
+
+
 @admin.register(Dispositivo)
 class DispositivoAdmin(admin.ModelAdmin):
     list_display = (
         "codigo",
-        "nombre",
         "tipo",
+        "tipo_tecnologia",
         "marca",
         "modelo",
         "numero_serie",
         "inventario_bienes_nacionales",
+        "inventario_numero_ficha",
         "estado",
         "criticidad",
     )
-    list_filter = ("tipo", "estado", "criticidad")
+    list_filter = ("tipo", "marca", "modelo", "tipo_tecnologia", "estado", "criticidad")
     search_fields = (
-        "nombre",
-        "marca",
-        "modelo",
+        "tipo__nombre",
+        "marca__nombre",
+        "modelo__nombre",
         "numero_serie",
         "inventario_bienes_nacionales",
+        "inventario_numero_ficha",
     )
-    autocomplete_fields = ("tipo", "creado_por", "modificado_por")
+    autocomplete_fields = ("tipo", "marca", "modelo", "creado_por", "modificado_por")
     readonly_fields = ("fecha_creado", "fecha_modificado")
 
     def save_model(self, request, obj, form, change):
@@ -52,9 +74,12 @@ class AsignacionDispositivoAdmin(admin.ModelAdmin):
     )
     list_filter = ("fecha_fin", "area_clinica", "unidad_no_clinica")
     search_fields = (
-        "dispositivo__nombre",
+        "dispositivo__tipo__nombre",
+        "dispositivo__marca__nombre",
+        "dispositivo__modelo__nombre",
         "dispositivo__numero_serie",
         "dispositivo__inventario_bienes_nacionales",
+        "dispositivo__inventario_numero_ficha",
         "responsable__dni",
         "responsable__primer_nombre",
         "responsable__primer_apellido",

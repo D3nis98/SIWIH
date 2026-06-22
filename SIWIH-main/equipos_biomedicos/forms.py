@@ -10,8 +10,12 @@ from .models import (
     CriticidadDispositivo,
     Dispositivo,
     EstadoDispositivo,
+    MarcaDispositivo,
+    ModeloDispositivo,
     TipoDispositivo,
+    TipoTecnologiaDispositivo,
     normalizar_inventario_bienes_nacionales,
+    normalizar_inventario_numero_ficha,
 )
 
 
@@ -76,8 +80,10 @@ class DispositivoCreateForm(forms.ModelForm):
         ),
     )
     frecuencia_mantenimiento_meses = forms.TypedChoiceField(
-        choices=FRECUENCIA_CHOICES,
+        choices=[("", "Sin frecuencia definida"), *FRECUENCIA_CHOICES],
         coerce=int,
+        empty_value=None,
+        required=False,
         label="Frecuencia de mantenimiento",
         widget=forms.Select(
             attrs={
@@ -90,12 +96,13 @@ class DispositivoCreateForm(forms.ModelForm):
     class Meta:
         model = Dispositivo
         fields = [
-            "nombre",
             "tipo",
+            "tipo_tecnologia",
             "marca",
             "modelo",
             "numero_serie",
             "inventario_bienes_nacionales",
+            "inventario_numero_ficha",
             "estado",
             "criticidad",
             "frecuencia_mantenimiento_meses",
@@ -105,31 +112,28 @@ class DispositivoCreateForm(forms.ModelForm):
             "observaciones",
         ]
         widgets = {
-            "nombre": forms.TextInput(
-                attrs={
-                    "class": "formularioCampo-text",
-                    "id": "nombre_dispositivo",
-                    "placeholder": "Ingrese el nombre del dispositivo",
-                }
-            ),
             "tipo": forms.Select(
                 attrs={
                     "class": "formularioCampo-select",
                     "id": "tipo_dispositivo",
                 }
             ),
-            "marca": forms.TextInput(
+            "tipo_tecnologia": forms.Select(
                 attrs={
-                    "class": "formularioCampo-text",
-                    "id": "marca_dispositivo",
-                    "placeholder": "Opcional; se guardará como Indefinido",
+                    "class": "formularioCampo-select",
+                    "id": "tipo_tecnologia_dispositivo",
                 }
             ),
-            "modelo": forms.TextInput(
+            "marca": forms.Select(
                 attrs={
-                    "class": "formularioCampo-text",
+                    "class": "formularioCampo-select",
+                    "id": "marca_dispositivo",
+                }
+            ),
+            "modelo": forms.Select(
+                attrs={
+                    "class": "formularioCampo-select",
                     "id": "modelo_dispositivo",
-                    "placeholder": "Opcional; se guardará como Indefinido",
                 }
             ),
             "numero_serie": forms.TextInput(
@@ -144,6 +148,13 @@ class DispositivoCreateForm(forms.ModelForm):
                     "class": "formularioCampo-text",
                     "id": "inventario_bienes_nacionales",
                     "placeholder": "Ej. F/212300 (opcional)",
+                }
+            ),
+            "inventario_numero_ficha": forms.TextInput(
+                attrs={
+                    "class": "formularioCampo-text",
+                    "id": "inventario_numero_ficha",
+                    "placeholder": "Opcional",
                 }
             ),
             "estado": forms.Select(
@@ -198,7 +209,15 @@ class DispositivoCreateForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
 
         self.fields["tipo"].queryset = TipoDispositivo.objects.filter(activo=True)
-        self.fields["tipo"].empty_label = "Seleccione el tipo de dispositivo"
+        self.fields["tipo"].empty_label = "Seleccione el tipo de equipo"
+        self.fields["marca"].queryset = MarcaDispositivo.objects.filter(activo=True)
+        self.fields["marca"].empty_label = "Seleccione la marca o deje INDEFINIDO"
+        self.fields["modelo"].queryset = ModeloDispositivo.objects.filter(activo=True)
+        self.fields["modelo"].empty_label = "Seleccione el modelo o deje INDEFINIDO"
+        self.fields["tipo_tecnologia"].choices = [
+            ("", "Seleccione el tipo de tecnología"),
+            *TipoTecnologiaDispositivo.choices,
+        ]
         self.fields["estado"].choices = [
             ("", "Seleccione el estado inicial"),
             (EstadoDispositivo.OPERATIVO, EstadoDispositivo.OPERATIVO.label),
@@ -243,18 +262,17 @@ class DispositivoCreateForm(forms.ModelForm):
             )
         return fecha_instalacion
 
-    def clean_marca(self):
-        return (self.cleaned_data.get("marca") or "").strip() or "Indefinido"
-
-    def clean_modelo(self):
-        return (self.cleaned_data.get("modelo") or "").strip() or "Indefinido"
-
     def clean_numero_serie(self):
         return (self.cleaned_data.get("numero_serie") or "").strip() or None
 
     def clean_inventario_bienes_nacionales(self):
         return normalizar_inventario_bienes_nacionales(
             self.cleaned_data.get("inventario_bienes_nacionales")
+        )
+
+    def clean_inventario_numero_ficha(self):
+        return normalizar_inventario_numero_ficha(
+            self.cleaned_data.get("inventario_numero_ficha")
         )
 
     def clean(self):

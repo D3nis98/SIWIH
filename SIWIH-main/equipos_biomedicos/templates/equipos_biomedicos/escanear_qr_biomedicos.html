@@ -1,12 +1,12 @@
 {% extends 'core/base.html' %}
 {% load static %}
 
-{% block title %}Escanear QR de Equipo Biomédico{% endblock title %}
+{% block title %}Escanear QR de equipo{% endblock title %}
 
 {% block content %}
 <div class="contenedor2 biomedicos-pagina">
     <a class="biomedicos-volver" href="{% url 'inicio_biomedicos' %}">
-        <i class="bi bi-arrow-left"></i> Equipos Biomédicos
+        <i class="bi bi-arrow-left"></i> Equipos
     </a>
 
     <div class="tituloFormulario">
@@ -27,7 +27,7 @@
             <h3>Escáner preparado para la siguiente etapa</h3>
             <p>
                 Aquí se habilitará la cámara para leer el código QR y abrir
-                directamente la ficha del dispositivo.
+                directamente la ficha del equipo.
             </p>
             <a class="formularioBotones-boton biomedicos-boton"
                href="{% url 'buscar_dispositivo_biomedicos' %}">

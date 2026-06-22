@@ -9,8 +9,10 @@ from core.constants.choices_constants import TipoUnidad
 from rrhh.models import Empleado
 from servicio.models import Area_atencion, Unidad
 
+# Normalización de inventarios: se eliminan espacios y se valida que no tengan
+# más de 15 dígitos numéricos.
 
-def normalizar_inventario_bienes_nacionales(valor):
+def normalizar_codigo_inventario(valor, nombre_campo):
     valor = (valor or "").strip()
 
     if not valor:
@@ -19,12 +21,34 @@ def normalizar_inventario_bienes_nacionales(valor):
     cantidad_digitos = sum(caracter.isdigit() for caracter in valor)
     if cantidad_digitos > 15:
         raise ValidationError(
-            "El inventario de bienes nacionales no puede contener más de "
-            "15 números."
+            f"El {nombre_campo} no puede contener más de 15 números."
         )
 
     return valor
 
+
+def normalizar_inventario_bienes_nacionales(valor):
+    return normalizar_codigo_inventario(valor, "inventario de bienes nacionales")
+
+
+def normalizar_inventario_numero_ficha(valor):
+    return normalizar_codigo_inventario(valor, "inventario número de ficha")
+
+
+def normalizar_nombre_catalogo(valor):
+    return (valor or "").strip().upper()
+
+
+def obtener_catalogo_indefinido(modelo_catalogo):
+    objeto, _ = modelo_catalogo.objects.get_or_create(
+        nombre="INDEFINIDO",
+        defaults={"descripcion": "Valor usado cuando el dato no aplica."},
+    )
+    return objeto
+# //////////////////////////////////////////////////////////////////////////////////.
+
+# Modelos para gestión de equipos, incluyendo tipos, datos propios del equipo
+# y asignaciones a áreas clínicas o unidades administrativas.
 
 class EstadoDispositivo(models.IntegerChoices):
     OPERATIVO = 1, "Operativo"
@@ -39,31 +63,118 @@ class CriticidadDispositivo(models.IntegerChoices):
     ALTA = 3, "Alta"
 
 
+class TipoTecnologiaDispositivo(models.IntegerChoices):
+    ELECTRONICO = 1, "Electrónico"
+    NO_ELECTRONICO = 2, "No electrónico"
+
+
 class TipoDispositivo(models.Model):
     nombre = models.CharField(max_length=100, unique=True)
     descripcion = models.CharField(max_length=250, blank=True)
     activo = models.BooleanField(default=True, db_index=True)
 
     class Meta:
-        verbose_name = "Tipo de dispositivo"
-        verbose_name_plural = "Tipos de dispositivo"
+        db_table = "equipo_tipo_dispositivo"
+        verbose_name = "Tipo de equipo"
+        verbose_name_plural = "Tipos de equipo"
         ordering = ["nombre"]
+
+    def clean(self):
+        self.nombre = normalizar_nombre_catalogo(self.nombre)
+        if not self.nombre:
+            raise ValidationError({"nombre": "Debe ingresar el tipo de equipo."})
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        return super().save(*args, **kwargs)
 
     def __str__(self):
         return self.nombre
 
 
+class MarcaDispositivo(models.Model):
+    nombre = models.CharField(max_length=100, unique=True)
+    descripcion = models.CharField(max_length=250, blank=True)
+    activo = models.BooleanField(default=True, db_index=True)
+
+    class Meta:
+        db_table = "equipo_marca_dispositivo"
+        verbose_name = "Marca de equipo"
+        verbose_name_plural = "Marcas de equipo"
+        ordering = ["nombre"]
+
+    def clean(self):
+        self.nombre = normalizar_nombre_catalogo(self.nombre)
+        if not self.nombre:
+            raise ValidationError({"nombre": "Debe ingresar la marca del equipo."})
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        return super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.nombre
+
+
+class ModeloDispositivo(models.Model):
+    nombre = models.CharField(max_length=100, unique=True)
+    descripcion = models.CharField(max_length=250, blank=True)
+    activo = models.BooleanField(default=True, db_index=True)
+
+    class Meta:
+        db_table = "equipo_modelo_dispositivo"
+        verbose_name = "Modelo de equipo"
+        verbose_name_plural = "Modelos de equipo"
+        ordering = ["nombre"]
+
+    def clean(self):
+        self.nombre = normalizar_nombre_catalogo(self.nombre)
+        if not self.nombre:
+            raise ValidationError({"nombre": "Debe ingresar el modelo del equipo."})
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        return super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.nombre
+
+# Modelo principal del equipo: guarda sus características técnicas,
+# estado, criticidad, fechas, costos y auditoría.
+
 class Dispositivo(models.Model):
-    nombre = models.CharField(max_length=120, db_index=True)
     tipo = models.ForeignKey(
         TipoDispositivo,
         on_delete=models.PROTECT,
         related_name="dispositivos",
     )
-    marca = models.CharField(max_length=80, blank=True, default="Indefinido")
-    modelo = models.CharField(max_length=100, blank=True, default="Indefinido")
+    tipo_tecnologia = models.PositiveSmallIntegerField(
+        choices=TipoTecnologiaDispositivo.choices,
+        null=True,
+        db_index=True,
+    )
+    marca = models.ForeignKey(
+        MarcaDispositivo,
+        on_delete=models.PROTECT,
+        related_name="dispositivos",
+        null=True,
+        blank=True,
+    )
+    modelo = models.ForeignKey(
+        ModeloDispositivo,
+        on_delete=models.PROTECT,
+        related_name="dispositivos",
+        null=True,
+        blank=True,
+    )
     numero_serie = models.CharField(max_length=100, unique=True, null=True, blank=True)
     inventario_bienes_nacionales = models.CharField(
+        max_length=30,
+        unique=True,
+        null=True,
+        blank=True,
+    )
+    inventario_numero_ficha = models.CharField(
         max_length=30,
         unique=True,
         null=True,
@@ -79,6 +190,8 @@ class Dispositivo(models.Model):
         db_index=True,
     )
     frecuencia_mantenimiento_meses = models.PositiveSmallIntegerField(
+        null=True,
+        blank=True,
         validators=[MinValueValidator(1)],
         help_text="Cantidad de meses entre mantenimientos preventivos.",
     )
@@ -104,9 +217,10 @@ class Dispositivo(models.Model):
     )
 
     class Meta:
-        verbose_name = "Dispositivo biomédico"
-        verbose_name_plural = "Dispositivos biomédicos"
-        ordering = ["nombre", "numero_serie"]
+        db_table = "equipo_dispositivo"
+        verbose_name = "Equipo"
+        verbose_name_plural = "Equipos"
+        ordering = ["tipo_id", "marca_id", "modelo_id", "numero_serie"]
         indexes = [
             models.Index(
                 fields=["estado", "criticidad"],
@@ -115,7 +229,8 @@ class Dispositivo(models.Model):
         ]
         constraints = [
             models.CheckConstraint(
-                condition=Q(frecuencia_mantenimiento_meses__gt=0),
+                condition=Q(frecuencia_mantenimiento_meses__isnull=True)
+                | Q(frecuencia_mantenimiento_meses__gt=0),
                 name="bio_disp_frecuencia_positiva",
             ),
             models.CheckConstraint(
@@ -135,11 +250,21 @@ class Dispositivo(models.Model):
             return "DISP-SIN-ID"
         return f"DISP-{self.pk:05d}"
 
+    @property
+    def nombre(self):
+        if self.tipo_id:
+            return self.tipo.nombre
+        return "SIN TIPO"
+
     def clean(self):
         errores = {}
-        self.marca = (self.marca or "").strip() or "Indefinido"
-        self.modelo = (self.modelo or "").strip() or "Indefinido"
         self.numero_serie = (self.numero_serie or "").strip() or None
+
+        if self.marca_id is None:
+            self.marca = obtener_catalogo_indefinido(MarcaDispositivo)
+
+        if self.modelo_id is None:
+            self.modelo = obtener_catalogo_indefinido(ModeloDispositivo)
 
         try:
             self.inventario_bienes_nacionales = (
@@ -149,6 +274,13 @@ class Dispositivo(models.Model):
             )
         except ValidationError as error:
             errores["inventario_bienes_nacionales"] = error
+
+        try:
+            self.inventario_numero_ficha = normalizar_inventario_numero_ficha(
+                self.inventario_numero_ficha
+            )
+        except ValidationError as error:
+            errores["inventario_numero_ficha"] = error
 
         if (
             self.fecha_instalacion
@@ -170,6 +302,17 @@ class Dispositivo(models.Model):
                 errores["inventario_bienes_nacionales"] = (
                     "Ya existe un dispositivo registrado con este inventario "
                     "de bienes nacionales."
+                )
+
+        if self.inventario_numero_ficha:
+            ficha_existente = Dispositivo.objects.filter(
+                inventario_numero_ficha__iexact=self.inventario_numero_ficha
+            ).exclude(pk=self.pk)
+
+            if ficha_existente.exists():
+                errores["inventario_numero_ficha"] = (
+                    "Ya existe un dispositivo registrado con este inventario "
+                    "número de ficha."
                 )
 
         if errores:
@@ -225,8 +368,9 @@ class AsignacionDispositivo(models.Model):
     )
 
     class Meta:
-        verbose_name = "Asignación de dispositivo biomédico"
-        verbose_name_plural = "Asignaciones de dispositivos biomédicos"
+        db_table = "equipo_asignacion_dispositivo"
+        verbose_name = "Asignación de equipo"
+        verbose_name_plural = "Asignaciones de equipos"
         ordering = ["-fecha_inicio"]
         indexes = [
             models.Index(

@@ -15,6 +15,7 @@ from .models import (
     Dispositivo,
     EstadoDispositivo,
     TipoDispositivo,
+    TipoTecnologiaDispositivo,
 )
 
 
@@ -40,14 +41,14 @@ def registrar_dispositivo(request):
                 area_clinica=form.cleaned_data.get("area_clinica"),
                 unidad_no_clinica=form.cleaned_data.get("unidad_no_clinica"),
                 responsable=form.cleaned_data["responsable"],
-                observaciones="Asignación inicial del dispositivo.",
+                observaciones="Asignación inicial del equipo.",
                 creado_por=request.user,
                 modificado_por=request.user,
             )
 
         messages.success(
             request,
-            f"Dispositivo {dispositivo.codigo} registrado correctamente.",
+            f"Equipo {dispositivo.codigo} registrado correctamente.",
         )
         return redirect("detalle_dispositivo_biomedicos", dispositivo_id=dispositivo.id)
 
@@ -102,6 +103,7 @@ def listado_dispositivos(request):
     filtro_estado = request.GET.get("estado", "").strip()
     filtro_criticidad = request.GET.get("criticidad", "").strip()
     filtro_tipo = request.GET.get("tipo", "").strip()
+    filtro_tecnologia = request.GET.get("tecnologia", "").strip()
 
     asignacion_activa = Prefetch(
         "asignaciones",
@@ -114,18 +116,20 @@ def listado_dispositivos(request):
         ),
         to_attr="asignacion_activa_lista",
     )
-    dispositivos = Dispositivo.objects.select_related("tipo").prefetch_related(
-        asignacion_activa
-    )
+    dispositivos = Dispositivo.objects.select_related(
+        "tipo",
+        "marca",
+        "modelo",
+    ).prefetch_related(asignacion_activa)
 
     if consulta:
         filtro_busqueda = (
-            Q(nombre__icontains=consulta)
-            | Q(marca__icontains=consulta)
-            | Q(modelo__icontains=consulta)
+            Q(tipo__nombre__icontains=consulta)
+            | Q(marca__nombre__icontains=consulta)
+            | Q(modelo__nombre__icontains=consulta)
             | Q(numero_serie__icontains=consulta)
             | Q(inventario_bienes_nacionales__icontains=consulta)
-            | Q(tipo__nombre__icontains=consulta)
+            | Q(inventario_numero_ficha__icontains=consulta)
         )
         codigo_numerico = "".join(caracter for caracter in consulta if caracter.isdigit())
 
@@ -161,7 +165,16 @@ def listado_dispositivos(request):
     if tipo_id:
         dispositivos = dispositivos.filter(tipo_id=tipo_id)
 
-    dispositivos = dispositivos.order_by("nombre", "numero_serie").distinct()
+    tecnologia_id = _parametro_entero(filtro_tecnologia)
+    if tecnologia_id:
+        dispositivos = dispositivos.filter(tipo_tecnologia=tecnologia_id)
+
+    dispositivos = dispositivos.order_by(
+        "tipo__nombre",
+        "marca__nombre",
+        "modelo__nombre",
+        "numero_serie",
+    ).distinct()
     paginador = Paginator(dispositivos, 10)
     page_obj = paginador.get_page(request.GET.get("page"))
 
@@ -208,6 +221,7 @@ def listado_dispositivos(request):
                 "estado": filtro_estado,
                 "criticidad": filtro_criticidad,
                 "tipo": filtro_tipo,
+                "tecnologia": filtro_tecnologia,
             },
             "area_choices": _obtener_opciones_area_listado(),
             "estado_choices": [
@@ -221,13 +235,17 @@ def listado_dispositivos(request):
             "tipo_choices": TipoDispositivo.objects.filter(activo=True).order_by(
                 "nombre"
             ),
+            "tecnologia_choices": [
+                {"value": str(valor), "label": etiqueta}
+                for valor, etiqueta in TipoTecnologiaDispositivo.choices
+            ],
         },
     )
 
 
 def detalle_dispositivo(request, dispositivo_id):
     dispositivo = get_object_or_404(
-        Dispositivo.objects.select_related("tipo"),
+        Dispositivo.objects.select_related("tipo", "marca", "modelo"),
         pk=dispositivo_id,
     )
     asignacion_actual = dispositivo.asignaciones.filter(

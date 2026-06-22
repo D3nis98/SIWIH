@@ -1,21 +1,21 @@
 {% extends 'core/base.html' %}
 
-{% block title %}Listado de Dispositivos Biomédicos{% endblock title %}
+{% block title %}Listado de equipos{% endblock title %}
 
 {% block content %}
 <div class="contenedor2 biomedicos-pagina">
     <div class="biomedicos-listado__encabezado">
         <div>
             <a class="biomedicos-volver" href="{% url 'inicio_biomedicos' %}">
-                <i class="bi bi-arrow-left"></i> Equipos Biomédicos
+                <i class="bi bi-arrow-left"></i> Equipos
             </a>
             <div class="tituloFormulario">
                 <div class="tituloFormulario-texto">
-                    <i class="bi bi-pc-display"></i>
+            <i class="bi bi-cpu"></i>
                     <div>
-                        <h2 class="sin-margen">Listado de dispositivos</h2>
+                        <h2 class="sin-margen">Listado de equipos</h2>
                         <p class="biomedicos-listado__subtitulo">
-                            Consulta y gestión de los dispositivos biomédicos del hospital.
+                            Consulta y gestión de los equipos del hospital.
                         </p>
                     </div>
                 </div>
@@ -26,7 +26,7 @@
         <a class="formularioBotones-boton biomedicos-listado__registrar"
            href="{% url 'registrar_dispositivo_biomedicos' %}">
             <i class="bi bi-plus-lg"></i>
-            Registrar dispositivo
+            Registrar equipo
         </a>
     </div>
 
@@ -40,7 +40,7 @@
                        name="q"
                        type="search"
                        value="{{ filtros.q }}"
-                       placeholder="Buscar por nombre, código interno, inventario, serie o modelo">
+                       placeholder="Buscar por código interno, inventario, ficha, serie, tipo, marca o modelo">
             </div>
         </div>
 
@@ -79,12 +79,23 @@
                 </select>
             </div>
             <div class="biomedicos-listado__filtro">
-                <label for="filtro_tipo"><i class="bi bi-funnel"></i> Tipo de dispositivo</label>
+                <label for="filtro_tipo"><i class="bi bi-funnel"></i> Tipo de equipo</label>
                 <select class="formularioCampo-select" id="filtro_tipo" name="tipo">
                     <option value="">Todos los tipos</option>
                     {% for tipo in tipo_choices %}
                         <option value="{{ tipo.id }}" {% if filtros.tipo == tipo.id|stringformat:"s" %}selected{% endif %}>
                             {{ tipo.nombre }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="biomedicos-listado__filtro">
+                <label for="filtro_tecnologia"><i class="bi bi-lightning-charge"></i> Tecnología</label>
+                <select class="formularioCampo-select" id="filtro_tecnologia" name="tecnologia">
+                    <option value="">Todas las tecnologías</option>
+                    {% for tecnologia in tecnologia_choices %}
+                        <option value="{{ tecnologia.value }}" {% if filtros.tecnologia == tecnologia.value %}selected{% endif %}>
+                            {{ tecnologia.label }}
                         </option>
                     {% endfor %}
                 </select>
@@ -109,12 +120,13 @@
             <thead>
                 <tr>
                     <th>Código</th>
-                    <th>Nombre del dispositivo</th>
-                    <th>Tipo</th>
+                    <th>Tipo de equipo</th>
+                    <th>Tecnología</th>
                     <th>Marca</th>
                     <th>Modelo</th>
                     <th>Número de serie</th>
                     <th>Inventario BN</th>
+                    <th>Inventario ficha</th>
                     <th>Área</th>
                     <th>Empleado a cargo</th>
                     <th>Estado</th>
@@ -133,12 +145,13 @@
                                     {{ dispositivo.codigo }}
                                 </a>
                             </td>
-                            <td>{{ dispositivo.nombre }}</td>
                             <td>{{ dispositivo.tipo }}</td>
-                            <td>{{ dispositivo.marca }}</td>
-                            <td>{{ dispositivo.modelo }}</td>
+                            <td>{{ dispositivo.get_tipo_tecnologia_display|default:"Sin definir" }}</td>
+                            <td>{{ dispositivo.marca|default:"INDEFINIDO" }}</td>
+                            <td>{{ dispositivo.modelo|default:"INDEFINIDO" }}</td>
                             <td>{{ dispositivo.numero_serie|default:"Indefinido" }}</td>
                             <td>{{ dispositivo.inventario_bienes_nacionales|default:"No aplica" }}</td>
+                            <td>{{ dispositivo.inventario_numero_ficha|default:"No aplica" }}</td>
                             <td>
                                 {% if asignacion %}
                                     {{ asignacion.ubicacion }}
@@ -173,7 +186,7 @@
                                     </a>
                                     <button class="biomedicos-listado__accion"
                                             type="button"
-                                            title="Editar dispositivo"
+                                            title="Editar equipo"
                                             disabled>
                                         <i class="bi bi-pencil"></i>
                                     </button>
@@ -183,10 +196,10 @@
                     {% endwith %}
                 {% empty %}
                     <tr>
-                        <td class="biomedicos-listado__vacio" colspan="13">
+                        <td class="biomedicos-listado__vacio" colspan="14">
                             <i class="bi bi-inbox"></i>
-                            <strong>No se encontraron dispositivos</strong>
-                            <span>Prueba limpiar los filtros o registra un nuevo dispositivo.</span>
+                            <strong>No se encontraron equipos</strong>
+                            <span>Prueba limpiar los filtros o registra un nuevo equipo.</span>
                         </td>
                     </tr>
                 {% endfor %}
@@ -198,10 +211,10 @@
         {% if total_dispositivos %}
             <span>
                 Mostrando {{ page_obj.start_index }} - {{ page_obj.end_index }}
-                de {{ total_dispositivos }} dispositivos
+                de {{ total_dispositivos }} equipos
             </span>
         {% else %}
-            <span>Mostrando 0 dispositivos</span>
+            <span>Mostrando 0 equipos</span>
         {% endif %}
 
         {% if page_obj.has_other_pages %}

@@ -1,20 +1,20 @@
 {% extends 'core/base.html' %}
 {% load static %}
 
-{% block title %}Equipos Biomédicos{% endblock title %}
+{% block title %}Equipos{% endblock title %}
 
 {% block content %}
 <div class="contenedor2 biomedicos-pagina">
     <div class="tituloFormulario">
         <div class="tituloFormulario-texto">
-            <i class="bi bi-pc-display-horizontal"></i>
-            <h2 class="sin-margen">Equipos Biomédicos</h2>
+            <i class="bi bi-cpu"></i>
+            <h2 class="sin-margen">Equipos</h2>
         </div>
         <div class="tituloFormulario-subrallado"></div>
     </div>
 
     <p class="biomedicos-descripcion">
-        Selecciona una opción para gestionar los dispositivos biomédicos.
+        Selecciona una opción para gestionar los equipos del hospital.
     </p>
 
     <div class="biomedicos-acciones-rapidas">
@@ -26,7 +26,7 @@
         <a class="formularioBotones-boton biomedicos-accion-rapida"
            href="{% url 'buscar_dispositivo_biomedicos' %}">
             <i class="bi bi-search"></i>
-            <span>Buscar dispositivo</span>
+            <span>Buscar equipo</span>
         </a>
     </div>
 
@@ -43,18 +43,18 @@
                 <a class="biomedicos-submenu__opcion"
                    href="{% url 'registrar_dispositivo_biomedicos' %}">
                     <i class="bi bi-plus-square"></i>
-                    <span>Registrar dispositivo</span>
+                    <span>Registrar equipo</span>
                     <i class="bi bi-chevron-right"></i>
                 </a>
                 <a class="biomedicos-submenu__opcion"
                    href="{% url 'listado_dispositivos_biomedicos' %}">
                     <i class="bi bi-list-ul"></i>
-                    <span>Listado de dispositivos</span>
+                    <span>Listado de equipos</span>
                     <i class="bi bi-chevron-right"></i>
                 </a>
                 <span class="biomedicos-submenu__opcion controles_clic_desactivados texto_desactivados">
                     <i class="bi bi-arrow-left-right"></i>
-                    <span>Traspaso de dispositivos</span>
+                    <span>Traspaso de equipos</span>
                 </span>
             </div>
         </section>

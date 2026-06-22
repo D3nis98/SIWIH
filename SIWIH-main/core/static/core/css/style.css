@@ -5648,7 +5648,7 @@ a.biomedicos-submenu__opcion:hover {
    align-items: end;
    display: grid;
    gap: 1.2rem;
-   grid-template-columns: repeat(4, minmax(15rem, 1fr)) auto;
+   grid-template-columns: repeat(5, minmax(14rem, 1fr)) auto;
 }
 
 .biomedicos-listado__filtro {
@@ -5701,7 +5701,7 @@ a.biomedicos-submenu__opcion:hover {
 }
 
 .biomedicos-listado__tabla {
-   min-width: 150rem;
+   min-width: 158rem;
    width: 100%;
 }
 

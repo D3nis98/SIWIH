@@ -1,6 +1,6 @@
 {% extends 'core/base.html' %}
 
-{% block title %}Detalle del Dispositivo Biomédico{% endblock title %}
+{% block title %}Detalle del equipo{% endblock title %}
 
 {% block content %}
 <div class="contenedor2 biomedicos-pagina">
@@ -11,19 +11,19 @@
             <i class="bi bi-arrow-left"></i>
         </a>
         <div>
-            <h2 class="sin-margen">Detalle del dispositivo</h2>
-            <p>Consulta la información completa del dispositivo biomédico.</p>
+            <h2 class="sin-margen">Detalle del equipo</h2>
+            <p>Consulta la información completa del equipo.</p>
         </div>
     </div>
 
     <section class="biomedicos-detalle__resumen">
         <div class="biomedicos-detalle__imagen">
-            <i class="bi bi-pc-display-horizontal"></i>
+                    <i class="bi bi-cpu"></i>
             <span>Sin fotografía</span>
         </div>
 
         <div class="biomedicos-detalle__identidad">
-            <h3>{{ dispositivo.nombre }}</h3>
+            <h3>{{ dispositivo.tipo }}</h3>
             <dl>
                 <div>
                     <dt>Código:</dt>
@@ -69,10 +69,12 @@
             <h3><i class="bi bi-info-circle"></i> Datos generales</h3>
             <dl class="biomedicos-detalle__datos">
                 <div><dt>Tipo</dt><dd>{{ dispositivo.tipo }}</dd></div>
-                <div><dt>Marca</dt><dd>{{ dispositivo.marca }}</dd></div>
-                <div><dt>Modelo</dt><dd>{{ dispositivo.modelo }}</dd></div>
+                <div><dt>Tipo de tecnología</dt><dd>{{ dispositivo.get_tipo_tecnologia_display|default:"Sin definir" }}</dd></div>
+                <div><dt>Marca</dt><dd>{{ dispositivo.marca|default:"INDEFINIDO" }}</dd></div>
+                <div><dt>Modelo</dt><dd>{{ dispositivo.modelo|default:"INDEFINIDO" }}</dd></div>
                 <div><dt>Número de serie</dt><dd>{{ dispositivo.numero_serie|default:"Indefinido" }}</dd></div>
                 <div><dt>Inventario de bienes nacionales</dt><dd>{{ dispositivo.inventario_bienes_nacionales|default:"No aplica" }}</dd></div>
+                <div><dt>Inventario número de ficha</dt><dd>{{ dispositivo.inventario_numero_ficha|default:"No aplica" }}</dd></div>
             </dl>
         </section>
 
@@ -109,7 +111,16 @@
         <section class="biomedicos-detalle__tarjeta">
             <h3><i class="bi bi-tools"></i> Mantenimiento</h3>
             <dl class="biomedicos-detalle__datos">
-                <div><dt>Frecuencia</dt><dd>Cada {{ dispositivo.frecuencia_mantenimiento_meses }} meses</dd></div>
+                <div>
+                    <dt>Frecuencia</dt>
+                    <dd>
+                        {% if dispositivo.frecuencia_mantenimiento_meses %}
+                            Cada {{ dispositivo.frecuencia_mantenimiento_meses }} meses
+                        {% else %}
+                            Sin frecuencia definida
+                        {% endif %}
+                    </dd>
+                </div>
                 <div><dt>Último mantenimiento</dt><dd>Pendiente de registrar</dd></div>
                 <div><dt>Próximo mantenimiento</dt><dd>Pendiente de programar</dd></div>
             </dl>
