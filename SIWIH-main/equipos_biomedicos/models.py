@@ -195,11 +195,13 @@ class Dispositivo(models.Model):
         validators=[MinValueValidator(1)],
         help_text="Cantidad de meses entre mantenimientos preventivos.",
     )
-    fecha_instalacion = models.DateField()
+    fecha_instalacion = models.DateField(null=True, blank=True)
     fin_garantia = models.DateField(null=True, blank=True)
     costo_adquisicion = models.DecimalField(
         max_digits=12,
         decimal_places=2,
+        null=True,
+        blank=True,
         validators=[MinValueValidator(0)],
     )
     observaciones = models.TextField(blank=True)
@@ -234,11 +236,13 @@ class Dispositivo(models.Model):
                 name="bio_disp_frecuencia_positiva",
             ),
             models.CheckConstraint(
-                condition=Q(costo_adquisicion__gte=0),
+                condition=Q(costo_adquisicion__isnull=True)
+                | Q(costo_adquisicion__gte=0),
                 name="bio_disp_costo_no_negativo",
             ),
             models.CheckConstraint(
                 condition=Q(fin_garantia__isnull=True)
+                | Q(fecha_instalacion__isnull=True)
                 | Q(fin_garantia__gte=F("fecha_instalacion")),
                 name="bio_disp_garantia_fecha_valida",
             ),

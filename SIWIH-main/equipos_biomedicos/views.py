@@ -1,9 +1,16 @@
+import base64
+from datetime import timedelta
+from io import BytesIO
+
+import qrcode
 from django.contrib import messages
 from django.core.paginator import Paginator
 from django.db import transaction
 from django.db.models import Prefetch, Q
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
+from django.utils import timezone
 
 from core.constants.choices_constants import EstadoRegistro
 from rrhh.models import Empleado
@@ -14,6 +21,8 @@ from .models import (
     CriticidadDispositivo,
     Dispositivo,
     EstadoDispositivo,
+    MarcaDispositivo,
+    ModeloDispositivo,
     TipoDispositivo,
     TipoTecnologiaDispositivo,
 )
@@ -97,15 +106,8 @@ def _parametro_entero(valor):
     return None
 
 
-def listado_dispositivos(request):
-    consulta = request.GET.get("q", "").strip()
-    filtro_area = request.GET.get("area", "").strip()
-    filtro_estado = request.GET.get("estado", "").strip()
-    filtro_criticidad = request.GET.get("criticidad", "").strip()
-    filtro_tipo = request.GET.get("tipo", "").strip()
-    filtro_tecnologia = request.GET.get("tecnologia", "").strip()
-
-    asignacion_activa = Prefetch(
+def _prefetch_asignacion_activa():
+    return Prefetch(
         "asignaciones",
         queryset=AsignacionDispositivo.objects.filter(
             fecha_fin__isnull=True
@@ -116,27 +118,100 @@ def listado_dispositivos(request):
         ),
         to_attr="asignacion_activa_lista",
     )
-    dispositivos = Dispositivo.objects.select_related(
+
+
+def _obtener_dispositivos_base():
+    return Dispositivo.objects.select_related(
         "tipo",
         "marca",
         "modelo",
-    ).prefetch_related(asignacion_activa)
+    ).prefetch_related(_prefetch_asignacion_activa())
 
-    if consulta:
-        filtro_busqueda = (
-            Q(tipo__nombre__icontains=consulta)
-            | Q(marca__nombre__icontains=consulta)
-            | Q(modelo__nombre__icontains=consulta)
-            | Q(numero_serie__icontains=consulta)
-            | Q(inventario_bienes_nacionales__icontains=consulta)
-            | Q(inventario_numero_ficha__icontains=consulta)
+
+def _aplicar_busqueda_dispositivos(dispositivos, consulta):
+    if not consulta:
+        return dispositivos
+
+    filtro_busqueda = (
+        Q(tipo__nombre__icontains=consulta)
+        | Q(marca__nombre__icontains=consulta)
+        | Q(modelo__nombre__icontains=consulta)
+        | Q(numero_serie__icontains=consulta)
+        | Q(inventario_bienes_nacionales__icontains=consulta)
+        | Q(inventario_numero_ficha__icontains=consulta)
+    )
+    codigo_numerico = "".join(caracter for caracter in consulta if caracter.isdigit())
+
+    if codigo_numerico:
+        filtro_busqueda |= Q(pk=int(codigo_numerico))
+
+    return dispositivos.filter(filtro_busqueda)
+
+
+def _ordenar_dispositivos(dispositivos):
+    return dispositivos.order_by(
+        "tipo__nombre",
+        "marca__nombre",
+        "modelo__nombre",
+        "numero_serie",
+    ).distinct()
+
+
+def _preparar_dispositivos_para_tabla(dispositivos):
+    estado_css = {
+        EstadoDispositivo.OPERATIVO: "biomedicos-estado--operativo",
+        EstadoDispositivo.EN_MANTENIMIENTO: "biomedicos-estado--media",
+        EstadoDispositivo.FUERA_DE_SERVICIO: "biomedicos-estado--alta",
+        EstadoDispositivo.DADO_DE_BAJA: "biomedicos-estado--inactivo",
+    }
+    criticidad_css = {
+        CriticidadDispositivo.BAJA: "biomedicos-estado--operativo",
+        CriticidadDispositivo.MEDIA: "biomedicos-estado--media",
+        CriticidadDispositivo.ALTA: "biomedicos-estado--alta",
+    }
+
+    for dispositivo in dispositivos:
+        dispositivo.asignacion_actual = (
+            dispositivo.asignacion_activa_lista[0]
+            if dispositivo.asignacion_activa_lista
+            else None
         )
-        codigo_numerico = "".join(caracter for caracter in consulta if caracter.isdigit())
+        dispositivo.estado_css = estado_css.get(dispositivo.estado, "")
+        dispositivo.criticidad_css = criticidad_css.get(dispositivo.criticidad, "")
+        dispositivo.garantia_estado, dispositivo.garantia_css = _obtener_estado_garantia(
+            dispositivo
+        )
 
-        if codigo_numerico:
-            filtro_busqueda |= Q(pk=int(codigo_numerico))
 
-        dispositivos = dispositivos.filter(filtro_busqueda)
+def _obtener_estado_garantia(dispositivo):
+    if not dispositivo.fin_garantia:
+        return "No indicada", "biomedicos-estado--inactivo"
+
+    hoy = timezone.localdate()
+
+    if dispositivo.fin_garantia < hoy:
+        return "Vencida", "biomedicos-estado--alta"
+
+    if dispositivo.fin_garantia <= hoy + timedelta(days=30):
+        return "Vence pronto", "biomedicos-estado--media"
+
+    return "Vigente", "biomedicos-estado--vigente"
+
+
+def listado_dispositivos(request):
+    consulta = request.GET.get("q", "").strip()
+    filtro_area = request.GET.get("area", "").strip()
+    filtro_estado = request.GET.get("estado", "").strip()
+    filtro_criticidad = request.GET.get("criticidad", "").strip()
+    filtro_tipo = request.GET.get("tipo", "").strip()
+    filtro_marca = request.GET.get("marca", "").strip()
+    filtro_modelo = request.GET.get("modelo", "").strip()
+    filtro_tecnologia = request.GET.get("tecnologia", "").strip()
+
+    dispositivos = _aplicar_busqueda_dispositivos(
+        _obtener_dispositivos_base(),
+        consulta,
+    )
 
     if filtro_area.startswith("clinica:"):
         area_id = _parametro_entero(filtro_area.removeprefix("clinica:"))
@@ -165,39 +240,22 @@ def listado_dispositivos(request):
     if tipo_id:
         dispositivos = dispositivos.filter(tipo_id=tipo_id)
 
+    marca_id = _parametro_entero(filtro_marca)
+    if marca_id:
+        dispositivos = dispositivos.filter(marca_id=marca_id)
+
+    modelo_id = _parametro_entero(filtro_modelo)
+    if modelo_id:
+        dispositivos = dispositivos.filter(modelo_id=modelo_id)
+
     tecnologia_id = _parametro_entero(filtro_tecnologia)
     if tecnologia_id:
         dispositivos = dispositivos.filter(tipo_tecnologia=tecnologia_id)
 
-    dispositivos = dispositivos.order_by(
-        "tipo__nombre",
-        "marca__nombre",
-        "modelo__nombre",
-        "numero_serie",
-    ).distinct()
+    dispositivos = _ordenar_dispositivos(dispositivos)
     paginador = Paginator(dispositivos, 10)
     page_obj = paginador.get_page(request.GET.get("page"))
-
-    estado_css = {
-        EstadoDispositivo.OPERATIVO: "biomedicos-estado--operativo",
-        EstadoDispositivo.EN_MANTENIMIENTO: "biomedicos-estado--media",
-        EstadoDispositivo.FUERA_DE_SERVICIO: "biomedicos-estado--alta",
-        EstadoDispositivo.DADO_DE_BAJA: "biomedicos-estado--inactivo",
-    }
-    criticidad_css = {
-        CriticidadDispositivo.BAJA: "biomedicos-estado--operativo",
-        CriticidadDispositivo.MEDIA: "biomedicos-estado--media",
-        CriticidadDispositivo.ALTA: "biomedicos-estado--alta",
-    }
-
-    for dispositivo in page_obj.object_list:
-        dispositivo.asignacion_actual = (
-            dispositivo.asignacion_activa_lista[0]
-            if dispositivo.asignacion_activa_lista
-            else None
-        )
-        dispositivo.estado_css = estado_css.get(dispositivo.estado, "")
-        dispositivo.criticidad_css = criticidad_css.get(dispositivo.criticidad, "")
+    _preparar_dispositivos_para_tabla(page_obj.object_list)
 
     query_params = request.GET.copy()
     query_params.pop("page", None)
@@ -221,6 +279,8 @@ def listado_dispositivos(request):
                 "estado": filtro_estado,
                 "criticidad": filtro_criticidad,
                 "tipo": filtro_tipo,
+                "marca": filtro_marca,
+                "modelo": filtro_modelo,
                 "tecnologia": filtro_tecnologia,
             },
             "area_choices": _obtener_opciones_area_listado(),
@@ -233,6 +293,12 @@ def listado_dispositivos(request):
                 for valor, etiqueta in CriticidadDispositivo.choices
             ],
             "tipo_choices": TipoDispositivo.objects.filter(activo=True).order_by(
+                "nombre"
+            ),
+            "marca_choices": MarcaDispositivo.objects.filter(activo=True).order_by(
+                "nombre"
+            ),
+            "modelo_choices": ModeloDispositivo.objects.filter(activo=True).order_by(
                 "nombre"
             ),
             "tecnologia_choices": [
@@ -266,6 +332,46 @@ def detalle_dispositivo(request, dispositivo_id):
     )
 
 
+def _generar_qr_data_uri(valor):
+    qr = qrcode.QRCode(
+        error_correction=qrcode.constants.ERROR_CORRECT_M,
+        box_size=10,
+        border=4,
+    )
+    qr.add_data(valor)
+    qr.make(fit=True)
+
+    imagen = qr.make_image(fill_color="black", back_color="white")
+    buffer = BytesIO()
+    imagen.save(buffer, format="PNG")
+    qr_base64 = base64.b64encode(buffer.getvalue()).decode("ascii")
+
+    return f"data:image/png;base64,{qr_base64}"
+
+
+def qr_dispositivo(request, dispositivo_id):
+    dispositivo = get_object_or_404(
+        Dispositivo.objects.select_related("tipo", "marca", "modelo"),
+        pk=dispositivo_id,
+    )
+    detalle_url = request.build_absolute_uri(
+        reverse(
+            "detalle_dispositivo_biomedicos",
+            kwargs={"dispositivo_id": dispositivo.id},
+        )
+    )
+
+    return render(
+        request,
+        "equipos_biomedicos/qr_dispositivo_biomedicos.html",
+        {
+            "dispositivo": dispositivo,
+            "detalle_url": detalle_url,
+            "qr_data_uri": _generar_qr_data_uri(detalle_url),
+        },
+    )
+
+
 def escanear_qr(request):
     return render(
         request,
@@ -274,12 +380,43 @@ def escanear_qr(request):
 
 
 def buscar_dispositivo(request):
-    consulta = request.GET.get('q', '').strip()
+    consulta = request.GET.get("q", "").strip()
+    dispositivos = Dispositivo.objects.none()
+    page_obj = None
+    rango_paginas = []
+    total_dispositivos = 0
+
+    if consulta:
+        dispositivos = _ordenar_dispositivos(
+            _aplicar_busqueda_dispositivos(
+                _obtener_dispositivos_base(),
+                consulta,
+            )
+        )
+        paginador = Paginator(dispositivos, 10)
+        page_obj = paginador.get_page(request.GET.get("page"))
+        _preparar_dispositivos_para_tabla(page_obj.object_list)
+        rango_paginas = paginador.get_elided_page_range(
+            page_obj.number,
+            on_each_side=1,
+            on_ends=1,
+        )
+        total_dispositivos = paginador.count
+
+    query_params = request.GET.copy()
+    query_params.pop("page", None)
 
     return render(
         request,
         'equipos_biomedicos/buscar_dispositivo_biomedicos.html',
-        {'consulta': consulta}
+        {
+            "consulta": consulta,
+            "dispositivos": page_obj.object_list if page_obj else [],
+            "page_obj": page_obj,
+            "rango_paginas": rango_paginas,
+            "total_dispositivos": total_dispositivos,
+            "querystring": query_params.urlencode(),
+        },
     )
 
 

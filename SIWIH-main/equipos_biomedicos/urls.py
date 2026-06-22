@@ -19,6 +19,11 @@ urlpatterns = [
         name='detalle_dispositivo_biomedicos'
     ),
     path(
+        'dispositivos/<int:dispositivo_id>/qr/',
+        views.qr_dispositivo,
+        name='qr_dispositivo_biomedicos'
+    ),
+    path(
         'escanear-qr/',
         views.escanear_qr,
         name='escanear_qr_biomedicos'

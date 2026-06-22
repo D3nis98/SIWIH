@@ -192,7 +192,7 @@ class DispositivoCreateForm(forms.ModelForm):
                     "id": "costo_dispositivo",
                     "min": 0,
                     "step": "0.01",
-                    "placeholder": "Ingrese el costo",
+                    "placeholder": "Ingrese el costo (opcional)",
                 }
             ),
             "observaciones": forms.Textarea(
@@ -256,7 +256,7 @@ class DispositivoCreateForm(forms.ModelForm):
 
     def clean_fecha_instalacion(self):
         fecha_instalacion = self.cleaned_data["fecha_instalacion"]
-        if fecha_instalacion > date.today():
+        if fecha_instalacion and fecha_instalacion > date.today():
             raise forms.ValidationError(
                 "La fecha de instalación no puede ser futura."
             )
