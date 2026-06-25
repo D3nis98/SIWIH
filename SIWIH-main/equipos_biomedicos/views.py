@@ -565,13 +565,6 @@ def qr_dispositivo(request, dispositivo_id):
     )
 
 
-def escanear_qr(request):
-    return render(
-        request,
-        'equipos_biomedicos/escanear_qr_biomedicos.html'
-    )
-
-
 def buscar_dispositivo(request):
     consulta = request.GET.get("q", "").strip()
     dispositivos = Dispositivo.objects.none()

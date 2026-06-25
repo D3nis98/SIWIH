@@ -5206,7 +5206,6 @@ a.biomedicos-submenu__opcion:hover {
    text-transform: uppercase;
 }
 
-.biomedicos-escaner,
 .biomedicos-busqueda {
    background-color: var(--blanco);
    border: .1rem solid var(--colorLinea);
@@ -5214,90 +5213,9 @@ a.biomedicos-submenu__opcion:hover {
    padding: 2.5rem;
 }
 
-.biomedicos-escaner h3,
 .biomedicos-busqueda h3 {
    font-size: 2.4rem;
    margin-bottom: .8rem;
-}
-
-.biomedicos-escaner {
-   align-items: center;
-   display: grid;
-   gap: 4rem;
-   grid-template-columns: minmax(25rem, .8fr) minmax(30rem, 1.2fr);
-}
-
-.biomedicos-escaner__marco {
-   align-items: center;
-   aspect-ratio: 1;
-   background-color: var(--colorMenuHover);
-   border-radius: 2rem;
-   color: var(--colorTextoMenu);
-   display: flex;
-   font-size: 7rem;
-   justify-content: center;
-   max-width: 32rem;
-   position: relative;
-   width: 100%;
-}
-
-.biomedicos-escaner__marco span {
-   border-color: var(--negro);
-   border-style: solid;
-   height: 6rem;
-   position: absolute;
-   width: 6rem;
-}
-
-.biomedicos-escaner__marco span:nth-child(1) {
-   border-width: .4rem 0 0 .4rem;
-   left: 2rem;
-   top: 2rem;
-}
-
-.biomedicos-escaner__marco span:nth-child(2) {
-   border-width: .4rem .4rem 0 0;
-   right: 2rem;
-   top: 2rem;
-}
-
-.biomedicos-escaner__marco span:nth-child(3) {
-   border-width: 0 0 .4rem .4rem;
-   bottom: 2rem;
-   left: 2rem;
-}
-
-.biomedicos-escaner__marco span:nth-child(4) {
-   border-width: 0 .4rem .4rem 0;
-   bottom: 2rem;
-   right: 2rem;
-}
-
-.biomedicos-escaner__contenido {
-   max-width: 60rem;
-}
-
-.biomedicos-escaner__contenido > p:not(.biomedicos-etiqueta) {
-   color: var(--colorTextoMenu);
-   line-height: 1.6;
-}
-
-.biomedicos-boton {
-   font-size: 1.6rem;
-   height: auto;
-   justify-content: center;
-   margin-top: 1.5rem;
-   min-height: 5.5rem;
-   padding: 1.2rem 2rem;
-   text-align: center;
-   text-transform: none;
-   white-space: nowrap;
-   width: 32rem;
-}
-
-.biomedicos-boton i {
-   font-size: 2.4rem;
-   padding-top: 0;
 }
 
 .biomedicos-busqueda {
@@ -5374,22 +5292,12 @@ a.biomedicos-submenu__opcion:hover {
 }
 
 @media (max-width: 900px) {
-   .biomedicos-escaner,
    .biomedicos-busqueda {
       grid-template-columns: 1fr;
-   }
-
-   .biomedicos-escaner__marco {
-      justify-self: center;
    }
 }
 
 @media (max-width: 650px) {
-   .biomedicos-boton {
-      white-space: normal;
-      width: 100%;
-   }
-
    .biomedicos-busqueda__campo {
       grid-template-columns: auto 1fr;
    }
