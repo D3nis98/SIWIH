@@ -8,7 +8,7 @@ class CustomLoginForm(AuthenticationForm):
         queryset=Zona.objects.filter(estado=1), 
         required=True, 
         empty_label=None,
-        initial=Zona.objects.get(codigo=1),
+        initial=1,
         to_field_name="codigo"
     )
 

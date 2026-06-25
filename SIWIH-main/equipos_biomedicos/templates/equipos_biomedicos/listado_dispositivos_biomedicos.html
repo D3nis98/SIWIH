@@ -59,7 +59,7 @@
             <div class="biomedicos-listado__filtro">
                 <label for="filtro_estado"><i class="bi bi-eye"></i> Estado</label>
                 <select class="formularioCampo-select" id="filtro_estado" name="estado">
-                    <option value="">Todos los estados</option>
+                    <option value="">Estados activos</option>
                     {% for estado in estado_choices %}
                         <option value="{{ estado.value }}" {% if filtros.estado == estado.value %}selected{% endif %}>
                             {{ estado.label }}
@@ -168,12 +168,12 @@
                                 </a>
                             </td>
                             <td>{{ dispositivo.tipo }}</td>
-                            <td>{{ dispositivo.get_tipo_tecnologia_display|default:"Sin definir" }}</td>
+                            <td>{{ dispositivo.get_tipo_tecnologia_display|default:"SIN DEFINIR"|upper }}</td>
                             <td>{{ dispositivo.marca|default:"INDEFINIDO" }}</td>
                             <td>{{ dispositivo.modelo|default:"INDEFINIDO" }}</td>
-                            <td>{{ dispositivo.numero_serie|default:"Indefinido" }}</td>
-                            <td>{{ dispositivo.inventario_bienes_nacionales|default:"No aplica" }}</td>
-                            <td>{{ dispositivo.inventario_numero_ficha|default:"No aplica" }}</td>
+                            <td>{{ dispositivo.numero_serie|default:"INDEFINIDO" }}</td>
+                            <td>{{ dispositivo.inventario_bienes_nacionales|default:"NO APLICA" }}</td>
+                            <td>{{ dispositivo.inventario_numero_ficha|default:"NO APLICA" }}</td>
                             <td>
                                 {% if asignacion %}
                                     {{ asignacion.ubicacion }}
@@ -215,12 +215,11 @@
                                        title="Ver / Imprimir QR">
                                         <i class="bi bi-qr-code"></i>
                                     </a>
-                                    <button class="biomedicos-listado__accion"
-                                            type="button"
-                                            title="Editar equipo"
-                                            disabled>
+                                    <a class="biomedicos-listado__accion"
+                                       href="{% url 'editar_dispositivo_biomedicos' dispositivo.id %}"
+                                       title="Editar equipo">
                                         <i class="bi bi-pencil"></i>
-                                    </button>
+                                    </a>
                                 </div>
                             </td>
                         </tr>

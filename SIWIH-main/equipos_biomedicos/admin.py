@@ -2,6 +2,7 @@ from django.contrib import admin
 
 from .models import (
     AsignacionDispositivo,
+    BajaDispositivo,
     Dispositivo,
     MarcaDispositivo,
     ModeloDispositivo,
@@ -61,6 +62,30 @@ class DispositivoAdmin(admin.ModelAdmin):
             obj.creado_por = request.user
         obj.modificado_por = request.user
         super().save_model(request, obj, form, change)
+
+
+@admin.register(BajaDispositivo)
+class BajaDispositivoAdmin(admin.ModelAdmin):
+    list_display = (
+        "dispositivo",
+        "fecha_baja",
+        "motivo",
+        "registrado_por",
+        "fecha_registro",
+    )
+    list_filter = ("fecha_baja", "registrado_por")
+    search_fields = (
+        "dispositivo__tipo__nombre",
+        "dispositivo__marca__nombre",
+        "dispositivo__modelo__nombre",
+        "dispositivo__numero_serie",
+        "dispositivo__inventario_bienes_nacionales",
+        "dispositivo__inventario_numero_ficha",
+        "motivo",
+        "registrado_por__username",
+    )
+    autocomplete_fields = ("dispositivo", "registrado_por")
+    readonly_fields = ("fecha_registro",)
 
 
 @admin.register(AsignacionDispositivo)

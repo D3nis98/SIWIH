@@ -1,12 +1,14 @@
 from datetime import date
 
 from django import forms
+from django.db.models import Q
 
 from core.constants.choices_constants import EstadoRegistro, TipoUnidad
 from rrhh.models import Empleado
 from servicio.models import Area_atencion, Unidad
 
 from .models import (
+    BajaDispositivo,
     CriticidadDispositivo,
     Dispositivo,
     EstadoDispositivo,
@@ -22,6 +24,43 @@ from .models import (
 class EmpleadoChoiceField(forms.ModelChoiceField):
     def label_from_instance(self, empleado):
         return f"{empleado.dni} - {empleado.nombre_completo}"
+
+
+class BajaDispositivoForm(forms.ModelForm):
+    class Meta:
+        model = BajaDispositivo
+        fields = ["fecha_baja", "motivo"]
+        widgets = {
+            "fecha_baja": forms.DateInput(
+                attrs={
+                    "class": "formularioCampo-date",
+                    "id": "fecha_baja_dispositivo",
+                    "type": "date",
+                    "max": date.today().strftime("%Y-%m-%d"),
+                },
+                format="%Y-%m-%d",
+            ),
+            "motivo": forms.Textarea(
+                attrs={
+                    "class": "formularioCampo-text no-resize",
+                    "id": "motivo_baja_dispositivo",
+                    "rows": 4,
+                    "placeholder": "Describa el motivo por el que se da de baja el equipo.",
+                }
+            ),
+        }
+
+    def clean_fecha_baja(self):
+        fecha_baja = self.cleaned_data["fecha_baja"]
+        if fecha_baja and fecha_baja > date.today():
+            raise forms.ValidationError("La fecha de baja no puede ser futura.")
+        return fecha_baja
+
+    def clean_motivo(self):
+        motivo = (self.cleaned_data.get("motivo") or "").strip()
+        if not motivo:
+            raise forms.ValidationError("Debe ingresar el motivo de baja.")
+        return motivo
 
 
 class DispositivoCreateForm(forms.ModelForm):
@@ -174,7 +213,6 @@ class DispositivoCreateForm(forms.ModelForm):
                     "class": "formularioCampo-date",
                     "id": "instalacion_dispositivo",
                     "type": "date",
-                    "max": date.today().strftime("%Y-%m-%d"),
                 },
                 format="%Y-%m-%d",
             ),
@@ -206,13 +244,51 @@ class DispositivoCreateForm(forms.ModelForm):
         }
 
     def __init__(self, *args, **kwargs):
+        self.asignacion_actual = kwargs.pop("asignacion_actual", None)
+        formulario_vinculado = (
+            (args and args[0] is not None)
+            or kwargs.get("data") is not None
+            or kwargs.get("files") is not None
+        )
+
+        if self.asignacion_actual and not formulario_vinculado:
+            initial = kwargs.get("initial", {}).copy()
+
+            if self.asignacion_actual.area_clinica_id:
+                initial.setdefault("tipo_area", "clinica")
+                initial.setdefault(
+                    "area_clinica",
+                    self.asignacion_actual.area_clinica_id,
+                )
+            elif self.asignacion_actual.unidad_no_clinica_id:
+                initial.setdefault("tipo_area", "no_clinica")
+                initial.setdefault(
+                    "unidad_no_clinica",
+                    self.asignacion_actual.unidad_no_clinica_id,
+                )
+
+            initial.setdefault("responsable", self.asignacion_actual.responsable_id)
+            kwargs["initial"] = initial
+
         super().__init__(*args, **kwargs)
 
-        self.fields["tipo"].queryset = TipoDispositivo.objects.filter(activo=True)
+        filtro_tipo = Q(activo=True)
+        filtro_marca = Q(activo=True)
+        filtro_modelo = Q(activo=True)
+
+        if self.instance and self.instance.pk:
+            if self.instance.tipo_id:
+                filtro_tipo |= Q(pk=self.instance.tipo_id)
+            if self.instance.marca_id:
+                filtro_marca |= Q(pk=self.instance.marca_id)
+            if self.instance.modelo_id:
+                filtro_modelo |= Q(pk=self.instance.modelo_id)
+
+        self.fields["tipo"].queryset = TipoDispositivo.objects.filter(filtro_tipo)
         self.fields["tipo"].empty_label = "Seleccione el tipo de equipo"
-        self.fields["marca"].queryset = MarcaDispositivo.objects.filter(activo=True)
+        self.fields["marca"].queryset = MarcaDispositivo.objects.filter(filtro_marca)
         self.fields["marca"].empty_label = "Seleccione la marca o deje INDEFINIDO"
-        self.fields["modelo"].queryset = ModeloDispositivo.objects.filter(activo=True)
+        self.fields["modelo"].queryset = ModeloDispositivo.objects.filter(filtro_modelo)
         self.fields["modelo"].empty_label = "Seleccione el modelo o deje INDEFINIDO"
         self.fields["tipo_tecnologia"].choices = [
             ("", "Seleccione el tipo de tecnología"),
@@ -234,33 +310,43 @@ class DispositivoCreateForm(forms.ModelForm):
             ("", "Seleccione la criticidad"),
             *CriticidadDispositivo.choices,
         ]
+        filtro_area_clinica = Q(estado=EstadoRegistro.ACTIVO)
+        filtro_unidad_no_clinica = Q(estado=EstadoRegistro.ACTIVO)
+
+        if self.asignacion_actual:
+            if self.asignacion_actual.area_clinica_id:
+                filtro_area_clinica |= Q(pk=self.asignacion_actual.area_clinica_id)
+            if self.asignacion_actual.unidad_no_clinica_id:
+                filtro_unidad_no_clinica |= Q(
+                    pk=self.asignacion_actual.unidad_no_clinica_id
+                )
+
         self.fields["area_clinica"].queryset = Area_atencion.objects.filter(
-            estado=EstadoRegistro.ACTIVO
+            filtro_area_clinica
         ).select_related("servicio")
         self.fields["unidad_no_clinica"].queryset = Unidad.objects.filter(
-            estado=EstadoRegistro.ACTIVO
+            filtro_unidad_no_clinica
         ).exclude(tipo=TipoUnidad.CLINICA).order_by("nombre_unidad")
+
         responsable_id = None
         if self.is_bound:
             responsable_id = self.data.get(self.add_prefix("responsable"))
+        else:
+            responsable_id = self.initial.get("responsable")
 
-        if responsable_id and responsable_id.isdigit():
+        if responsable_id and str(responsable_id).isdigit():
+            filtro_responsable = Q(pk=responsable_id)
+
+            if self.is_bound:
+                filtro_responsable &= Q(estado=EstadoRegistro.ACTIVO)
+
             self.fields["responsable"].queryset = Empleado.objects.filter(
-                estado=EstadoRegistro.ACTIVO,
-                pk=responsable_id,
+                filtro_responsable
             )
 
         self.fields["area_clinica"].empty_label = "Seleccione el área clínica"
         self.fields["unidad_no_clinica"].empty_label = "Seleccione el área no clínica"
         self.fields["responsable"].empty_label = "Buscar empleado a cargo"
-
-    def clean_fecha_instalacion(self):
-        fecha_instalacion = self.cleaned_data["fecha_instalacion"]
-        if fecha_instalacion and fecha_instalacion > date.today():
-            raise forms.ValidationError(
-                "La fecha de instalación no puede ser futura."
-            )
-        return fecha_instalacion
 
     def clean_numero_serie(self):
         return (self.cleaned_data.get("numero_serie") or "").strip() or None

@@ -3,6 +3,7 @@ from datetime import timedelta
 from io import BytesIO
 
 import qrcode
+from django.conf import settings
 from django.contrib import messages
 from django.core.paginator import Paginator
 from django.db import transaction
@@ -15,9 +16,10 @@ from django.utils import timezone
 from core.constants.choices_constants import EstadoRegistro
 from rrhh.models import Empleado
 
-from .forms import DispositivoCreateForm
+from .forms import BajaDispositivoForm, DispositivoCreateForm
 from .models import (
     AsignacionDispositivo,
+    BajaDispositivo,
     CriticidadDispositivo,
     Dispositivo,
     EstadoDispositivo,
@@ -45,14 +47,11 @@ def registrar_dispositivo(request):
             dispositivo.modificado_por = request.user
             dispositivo.save()
 
-            AsignacionDispositivo.objects.create(
-                dispositivo=dispositivo,
-                area_clinica=form.cleaned_data.get("area_clinica"),
-                unidad_no_clinica=form.cleaned_data.get("unidad_no_clinica"),
-                responsable=form.cleaned_data["responsable"],
-                observaciones="Asignación inicial del equipo.",
-                creado_por=request.user,
-                modificado_por=request.user,
+            _crear_asignacion_dispositivo(
+                dispositivo,
+                form,
+                request.user,
+                "Asignación inicial del equipo.",
             )
 
         messages.success(
@@ -64,7 +63,77 @@ def registrar_dispositivo(request):
     return render(
         request,
         "equipos_biomedicos/registrar_dispositivo_biomedicos.html",
-        {"form": form},
+        {
+            "form": form,
+            "titulo_pagina": "Registrar equipo",
+            "titulo_formulario": "Registrar equipo",
+            "icono_formulario": "bi bi-clipboard2-plus",
+            "texto_boton_guardar": "Guardar equipo",
+            "url_regresar": reverse("inicio_biomedicos"),
+            "estado_label": "Estado inicial *",
+        },
+    )
+
+
+def _obtener_asignacion_actual(dispositivo):
+    return dispositivo.asignaciones.filter(
+        fecha_fin__isnull=True
+    ).select_related(
+        "area_clinica__servicio",
+        "unidad_no_clinica",
+        "responsable",
+    ).first()
+
+
+def _obtener_baja_dispositivo(dispositivo):
+    try:
+        return dispositivo.baja
+    except BajaDispositivo.DoesNotExist:
+        return None
+
+
+def _crear_asignacion_dispositivo(dispositivo, form, usuario, observaciones):
+    return AsignacionDispositivo.objects.create(
+        dispositivo=dispositivo,
+        area_clinica=form.cleaned_data.get("area_clinica"),
+        unidad_no_clinica=form.cleaned_data.get("unidad_no_clinica"),
+        responsable=form.cleaned_data["responsable"],
+        observaciones=observaciones,
+        creado_por=usuario,
+        modificado_por=usuario,
+    )
+
+
+def _datos_asignacion_cambiaron(asignacion_actual, form):
+    if not asignacion_actual:
+        return True
+
+    area_clinica = form.cleaned_data.get("area_clinica")
+    unidad_no_clinica = form.cleaned_data.get("unidad_no_clinica")
+    responsable = form.cleaned_data["responsable"]
+
+    return (
+        asignacion_actual.area_clinica_id != getattr(area_clinica, "pk", None)
+        or asignacion_actual.unidad_no_clinica_id
+        != getattr(unidad_no_clinica, "pk", None)
+        or asignacion_actual.responsable_id != responsable.pk
+    )
+
+
+def _actualizar_asignacion_dispositivo(dispositivo, form, usuario, asignacion_actual):
+    if not _datos_asignacion_cambiaron(asignacion_actual, form):
+        return asignacion_actual
+
+    if asignacion_actual:
+        asignacion_actual.fecha_fin = timezone.now()
+        asignacion_actual.modificado_por = usuario
+        asignacion_actual.save()
+
+    return _crear_asignacion_dispositivo(
+        dispositivo,
+        form,
+        usuario,
+        "Asignación actualizada desde edición del equipo.",
     )
 
 
@@ -231,6 +300,8 @@ def listado_dispositivos(request):
     estado_id = _parametro_entero(filtro_estado)
     if estado_id:
         dispositivos = dispositivos.filter(estado=estado_id)
+    else:
+        dispositivos = dispositivos.exclude(estado=EstadoDispositivo.DADO_DE_BAJA)
 
     criticidad_id = _parametro_entero(filtro_criticidad)
     if criticidad_id:
@@ -311,16 +382,16 @@ def listado_dispositivos(request):
 
 def detalle_dispositivo(request, dispositivo_id):
     dispositivo = get_object_or_404(
-        Dispositivo.objects.select_related("tipo", "marca", "modelo"),
+        Dispositivo.objects.select_related(
+            "tipo",
+            "marca",
+            "modelo",
+            "baja__registrado_por",
+        ),
         pk=dispositivo_id,
     )
-    asignacion_actual = dispositivo.asignaciones.filter(
-        fecha_fin__isnull=True
-    ).select_related(
-        "area_clinica__servicio",
-        "unidad_no_clinica",
-        "responsable",
-    ).first()
+    asignacion_actual = _obtener_asignacion_actual(dispositivo)
+    baja_dispositivo = _obtener_baja_dispositivo(dispositivo)
 
     return render(
         request,
@@ -328,7 +399,121 @@ def detalle_dispositivo(request, dispositivo_id):
         {
             "dispositivo": dispositivo,
             "asignacion_actual": asignacion_actual,
+            "baja_dispositivo": baja_dispositivo,
         }
+    )
+
+
+def editar_dispositivo(request, dispositivo_id):
+    dispositivo = get_object_or_404(
+        Dispositivo.objects.select_related("tipo", "marca", "modelo"),
+        pk=dispositivo_id,
+    )
+
+    if (
+        _obtener_baja_dispositivo(dispositivo)
+        or dispositivo.estado == EstadoDispositivo.DADO_DE_BAJA
+    ):
+        messages.warning(
+            request,
+            "El equipo ya fue dado de baja y no puede editarse desde esta vista.",
+        )
+        return redirect("detalle_dispositivo_biomedicos", dispositivo_id=dispositivo.id)
+
+    asignacion_actual = _obtener_asignacion_actual(dispositivo)
+    form = DispositivoCreateForm(
+        request.POST or None,
+        instance=dispositivo,
+        asignacion_actual=asignacion_actual,
+    )
+
+    if request.method == "POST" and form.is_valid():
+        with transaction.atomic():
+            dispositivo = form.save(commit=False)
+            dispositivo.modificado_por = request.user
+            dispositivo.save()
+
+            _actualizar_asignacion_dispositivo(
+                dispositivo,
+                form,
+                request.user,
+                asignacion_actual,
+            )
+
+        messages.success(
+            request,
+            f"Equipo {dispositivo.codigo} actualizado correctamente.",
+        )
+        return redirect("detalle_dispositivo_biomedicos", dispositivo_id=dispositivo.id)
+
+    return render(
+        request,
+        "equipos_biomedicos/registrar_dispositivo_biomedicos.html",
+        {
+            "form": form,
+            "dispositivo": dispositivo,
+            "titulo_pagina": f"Editar {dispositivo.codigo}",
+            "titulo_formulario": "Editar equipo",
+            "icono_formulario": "bi bi-pencil-square",
+            "texto_boton_guardar": "Actualizar equipo",
+            "url_baja": reverse(
+                "dar_baja_dispositivo_biomedicos",
+                kwargs={"dispositivo_id": dispositivo.id},
+            ),
+            "url_regresar": reverse(
+                "detalle_dispositivo_biomedicos",
+                kwargs={"dispositivo_id": dispositivo.id},
+            ),
+            "estado_label": "Estado *",
+        },
+    )
+
+
+def dar_baja_dispositivo(request, dispositivo_id):
+    dispositivo = get_object_or_404(
+        Dispositivo.objects.select_related("tipo", "marca", "modelo"),
+        pk=dispositivo_id,
+    )
+
+    if _obtener_baja_dispositivo(dispositivo):
+        messages.warning(request, "Este equipo ya tiene un registro de baja.")
+        return redirect("detalle_dispositivo_biomedicos", dispositivo_id=dispositivo.id)
+
+    form = BajaDispositivoForm(
+        request.POST or None,
+        initial={"fecha_baja": timezone.localdate()},
+    )
+
+    if request.method == "POST" and form.is_valid():
+        with transaction.atomic():
+            baja = form.save(commit=False)
+            baja.dispositivo = dispositivo
+            baja.registrado_por = request.user
+            baja.save()
+
+            Dispositivo.objects.filter(pk=dispositivo.pk).update(
+                estado=EstadoDispositivo.DADO_DE_BAJA,
+                modificado_por=request.user,
+                fecha_modificado=timezone.now(),
+            )
+
+        messages.success(
+            request,
+            f"Equipo {dispositivo.codigo} dado de baja correctamente.",
+        )
+        return redirect("detalle_dispositivo_biomedicos", dispositivo_id=dispositivo.id)
+
+    return render(
+        request,
+        "equipos_biomedicos/dar_baja_dispositivo_biomedicos.html",
+        {
+            "form": form,
+            "dispositivo": dispositivo,
+            "url_regresar": reverse(
+                "detalle_dispositivo_biomedicos",
+                kwargs={"dispositivo_id": dispositivo.id},
+            ),
+        },
     )
 
 
@@ -349,17 +534,25 @@ def _generar_qr_data_uri(valor):
     return f"data:image/png;base64,{qr_base64}"
 
 
+def _construir_url_qr_equipo(request, dispositivo_id):
+    ruta_detalle = reverse(
+        "detalle_dispositivo_biomedicos",
+        kwargs={"dispositivo_id": dispositivo_id},
+    )
+    base_url = getattr(settings, "EQUIPOS_QR_BASE_URL", "").strip()
+
+    if base_url:
+        return f"{base_url.rstrip('/')}{ruta_detalle}"
+
+    return request.build_absolute_uri(ruta_detalle)
+
+
 def qr_dispositivo(request, dispositivo_id):
     dispositivo = get_object_or_404(
         Dispositivo.objects.select_related("tipo", "marca", "modelo"),
         pk=dispositivo_id,
     )
-    detalle_url = request.build_absolute_uri(
-        reverse(
-            "detalle_dispositivo_biomedicos",
-            kwargs={"dispositivo_id": dispositivo.id},
-        )
-    )
+    detalle_url = _construir_url_qr_equipo(request, dispositivo.id)
 
     return render(
         request,

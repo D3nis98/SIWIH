@@ -76,9 +76,9 @@
                                 <td>{{ dispositivo.tipo }}</td>
                                 <td>{{ dispositivo.marca|default:"INDEFINIDO" }}</td>
                                 <td>{{ dispositivo.modelo|default:"INDEFINIDO" }}</td>
-                                <td>{{ dispositivo.numero_serie|default:"Indefinido" }}</td>
-                                <td>{{ dispositivo.inventario_bienes_nacionales|default:"No aplica" }}</td>
-                                <td>{{ dispositivo.inventario_numero_ficha|default:"No aplica" }}</td>
+                                <td>{{ dispositivo.numero_serie|default:"INDEFINIDO" }}</td>
+                                <td>{{ dispositivo.inventario_bienes_nacionales|default:"NO APLICA" }}</td>
+                                <td>{{ dispositivo.inventario_numero_ficha|default:"NO APLICA" }}</td>
                                 <td>
                                     {% if asignacion %}
                                         {{ asignacion.ubicacion }}
@@ -108,12 +108,11 @@
                                            title="Ver / Imprimir QR">
                                             <i class="bi bi-qr-code"></i>
                                         </a>
-                                        <button class="biomedicos-listado__accion"
-                                                type="button"
-                                                title="Editar equipo"
-                                                disabled>
+                                        <a class="biomedicos-listado__accion"
+                                           href="{% url 'editar_dispositivo_biomedicos' dispositivo.id %}"
+                                           title="Editar equipo">
                                             <i class="bi bi-pencil"></i>
-                                        </button>
+                                        </a>
                                     </div>
                                 </td>
                             </tr>

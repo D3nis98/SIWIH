@@ -35,7 +35,11 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True if os.getenv("DEBUG", "0") == "1" else False
 
-ALLOWED_HOSTS = ['SIWIH','127.0.0.1','192.168.88.28','192.168.88.173','192.168.88.223']
+ALLOWED_HOSTS = ['SIWIH','127.0.0.1','192.168.88.28','192.168.88.173','192.168.88.223','192.168.0.102','192.168.88.226']
+
+# URL base que se guarda dentro de los QR de equipos.
+# En producción debe apuntar al host/IP estable del sistema.
+EQUIPOS_QR_BASE_URL = os.getenv("EQUIPOS_QR_BASE_URL", "http://192.168.88.226:8000")
 
 # Application definition
 

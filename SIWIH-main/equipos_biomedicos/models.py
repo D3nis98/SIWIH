@@ -330,6 +330,51 @@ class Dispositivo(models.Model):
         return f"{self.codigo} - {self.nombre}"
 
 
+class BajaDispositivo(models.Model):
+    dispositivo = models.OneToOneField(
+        Dispositivo,
+        on_delete=models.PROTECT,
+        related_name="baja",
+    )
+    fecha_baja = models.DateField(verbose_name="Fecha de baja")
+    motivo = models.CharField(max_length=255, verbose_name="Motivo de baja")
+    registrado_por = models.ForeignKey(
+        User,
+        on_delete=models.PROTECT,
+        related_name="bajas_dispositivos_biomedicos_registradas",
+    )
+    fecha_registro = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name="Fecha de registro",
+    )
+
+    class Meta:
+        db_table = "equipo_baja_dispositivo"
+        verbose_name = "Baja de equipo"
+        verbose_name_plural = "Bajas de equipos"
+        ordering = ["-fecha_baja", "-fecha_registro"]
+
+    def clean(self):
+        errores = {}
+        self.motivo = (self.motivo or "").strip()
+
+        if not self.motivo:
+            errores["motivo"] = "Debe ingresar el motivo de baja."
+
+        if self.fecha_baja and self.fecha_baja > timezone.localdate():
+            errores["fecha_baja"] = "La fecha de baja no puede ser futura."
+
+        if errores:
+            raise ValidationError(errores)
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        return super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.dispositivo.codigo} - {self.fecha_baja}"
+
+
 class AsignacionDispositivo(models.Model):
     dispositivo = models.ForeignKey(
         Dispositivo,

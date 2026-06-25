@@ -19,6 +19,16 @@ urlpatterns = [
         name='detalle_dispositivo_biomedicos'
     ),
     path(
+        'dispositivos/<int:dispositivo_id>/editar/',
+        views.editar_dispositivo,
+        name='editar_dispositivo_biomedicos'
+    ),
+    path(
+        'dispositivos/<int:dispositivo_id>/dar-baja/',
+        views.dar_baja_dispositivo,
+        name='dar_baja_dispositivo_biomedicos'
+    ),
+    path(
         'dispositivos/<int:dispositivo_id>/qr/',
         views.qr_dispositivo,
         name='qr_dispositivo_biomedicos'

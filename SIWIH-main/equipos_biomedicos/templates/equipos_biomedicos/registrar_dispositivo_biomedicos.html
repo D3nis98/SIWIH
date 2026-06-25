@@ -1,17 +1,17 @@
 {% extends 'core/base.html' %}
 
-{% block title %}Registrar equipo{% endblock title %}
+{% block title %}{{ titulo_pagina|default:"Registrar equipo" }}{% endblock title %}
 
 {% block content %}
 <div class="contenedor2 biomedicos-pagina">
-    <a class="biomedicos-volver" href="{% url 'inicio_biomedicos' %}">
+    <a class="biomedicos-volver" href="{{ url_regresar }}">
         <i class="bi bi-arrow-left"></i> Equipos
     </a>
 
     <div class="tituloFormulario">
         <div class="tituloFormulario-texto">
-            <i class="bi bi-clipboard2-plus"></i>
-            <h2 class="sin-margen">Registrar equipo</h2>
+            <i class="{{ icono_formulario|default:'bi bi-clipboard2-plus' }}"></i>
+            <h2 class="sin-margen">{{ titulo_formulario|default:"Registrar equipo" }}</h2>
         </div>
         <div class="tituloFormulario-subrallado"></div>
     </div>
@@ -110,12 +110,12 @@
         <section class="biomedicos-registro__seccion biomedicos-registro__seccion--control">
             <h3 class="biomedicos-registro__titulo">
                 <i class="bi bi-shield"></i>
-                Control inicial
+                Control del equipo
             </h3>
 
             <div class="biomedicos-registro__campos biomedicos-registro__campos--dos">
                 <div class="biomedicos-registro__campo">
-                    <label for="estado_dispositivo">Estado inicial *</label>
+                    <label for="estado_dispositivo">{{ estado_label|default:"Estado inicial *" }}</label>
                     {{ form.estado }}
                     {{ form.estado.errors }}
                 </div>
@@ -192,15 +192,24 @@
         </section>
 
         <div class="biomedicos-registro__acciones">
-            <button class="formularioBotones-boton biomedicos-registro__boton" type="submit">
-                <i class="bi bi-floppy"></i>
-                Guardar equipo
-            </button>
-            <a class="formularioBotones-boton biomedicos-registro__boton biomedicos-registro__boton--secundario"
-               href="{% url 'inicio_biomedicos' %}">
-                <i class="bi bi-arrow-left"></i>
-                Regresar
-            </a>
+            {% if url_baja %}
+                <a class="formularioBotones-boton biomedicos-registro__boton biomedicos-baja__boton"
+                   href="{{ url_baja }}">
+                    <i class="bi bi-exclamation-octagon"></i>
+                    Dar de baja
+                </a>
+            {% endif %}
+            <div class="biomedicos-registro__acciones-principales">
+                <button class="formularioBotones-boton biomedicos-registro__boton" type="submit">
+                    <i class="bi bi-floppy"></i>
+                    {{ texto_boton_guardar|default:"Guardar equipo" }}
+                </button>
+                <a class="formularioBotones-boton biomedicos-registro__boton biomedicos-registro__boton--secundario"
+                   href="{{ url_regresar }}">
+                    <i class="bi bi-arrow-left"></i>
+                    Regresar
+                </a>
+            </div>
         </div>
     </form>
 </div>
