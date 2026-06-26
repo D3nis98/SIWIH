@@ -21,12 +21,16 @@ from .models import (
 )
 
 
+# Personaliza la etiqueta visible del select de empleados.
+# Select2 usa este texto cuando ya hay un responsable seleccionado.
 class EmpleadoChoiceField(forms.ModelChoiceField):
     def label_from_instance(self, empleado):
         return f"{empleado.dni} - {empleado.nombre_completo}"
 
 
 class BajaDispositivoForm(forms.ModelForm):
+    # Formulario corto para crear el registro de baja administrativa.
+    # La vista se encarga despues de cambiar el estado del equipo a DADO_DE_BAJA.
     class Meta:
         model = BajaDispositivo
         fields = ["fecha_baja", "motivo"]
@@ -64,6 +68,8 @@ class BajaDispositivoForm(forms.ModelForm):
 
 
 class DispositivoCreateForm(forms.ModelForm):
+    # Este mismo formulario se reutiliza para registrar y editar equipos.
+    # Ademas de campos de Dispositivo, maneja la asignacion inicial/actual.
     TIPO_AREA_CHOICES = [
         ("clinica", "Área clínica"),
         ("no_clinica", "Área no clínica"),
@@ -244,6 +250,8 @@ class DispositivoCreateForm(forms.ModelForm):
         }
 
     def __init__(self, *args, **kwargs):
+        # En edicion la vista envia asignacion_actual para precargar ubicacion
+        # y responsable. En registro ese valor llega vacio.
         self.asignacion_actual = kwargs.pop("asignacion_actual", None)
         formulario_vinculado = (
             (args and args[0] is not None)
@@ -272,6 +280,8 @@ class DispositivoCreateForm(forms.ModelForm):
 
         super().__init__(*args, **kwargs)
 
+        # Los catalogos inactivos no se muestran para nuevos registros, pero si
+        # el equipo ya usa uno, se conserva en la edicion para no romper historico.
         filtro_tipo = Q(activo=True)
         filtro_marca = Q(activo=True)
         filtro_modelo = Q(activo=True)
@@ -334,6 +344,9 @@ class DispositivoCreateForm(forms.ModelForm):
         else:
             responsable_id = self.initial.get("responsable")
 
+        # Para no cargar miles de empleados en el HTML, el select inicia vacio.
+        # Select2 consulta buscar_empleados() por AJAX y aqui solo se acepta el
+        # empleado seleccionado cuando el formulario se envia.
         if responsable_id and str(responsable_id).isdigit():
             filtro_responsable = Q(pk=responsable_id)
 
@@ -349,6 +362,7 @@ class DispositivoCreateForm(forms.ModelForm):
         self.fields["responsable"].empty_label = "Buscar empleado a cargo"
 
     def clean_numero_serie(self):
+        # Una cadena vacia se guarda como NULL para permitir varios equipos sin serie.
         return (self.cleaned_data.get("numero_serie") or "").strip() or None
 
     def clean_inventario_bienes_nacionales(self):
@@ -362,6 +376,8 @@ class DispositivoCreateForm(forms.ModelForm):
         )
 
     def clean(self):
+        # Valida la ubicacion segun el tipo de area seleccionado por el usuario.
+        # El modelo vuelve a proteger la regla exacta antes de guardar.
         cleaned_data = super().clean()
         tipo_area = cleaned_data.get("tipo_area")
         area_clinica = cleaned_data.get("area_clinica")

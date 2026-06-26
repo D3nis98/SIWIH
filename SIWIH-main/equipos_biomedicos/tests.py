@@ -26,6 +26,8 @@ class EquiposBiomedicosViewsTests(TestCase):
 
     @classmethod
     def setUpTestData(cls):
+        # Datos base compartidos por todas las pruebas: usuario, catalogos,
+        # ubicaciones, responsable y un equipo con asignacion activa.
         cls.usuario = get_user_model().objects.create_user(
             username='usuario_biomedicos',
             password='clave-prueba'
@@ -92,6 +94,7 @@ class EquiposBiomedicosViewsTests(TestCase):
         self.client.force_login(self.usuario)
 
     def _datos_formulario_dispositivo(self, **sobrescribir):
+        # Payload reutilizable para POST de registro/edicion.
         datos = {
             "tipo": self.tipo.id,
             "tipo_tecnologia": TipoTecnologiaDispositivo.ELECTRONICO,
@@ -116,6 +119,7 @@ class EquiposBiomedicosViewsTests(TestCase):
         return datos
 
     def test_usuario_autenticado_puede_abrir_pantallas_del_modulo(self):
+        # Prueba de humo: las pantallas principales deben responder 200.
         nombres_rutas = [
             'inicio_biomedicos',
             'registrar_dispositivo_biomedicos',
@@ -137,6 +141,7 @@ class EquiposBiomedicosViewsTests(TestCase):
         self.assertEqual(respuesta.status_code, 404)
 
     def test_registro_crea_dispositivo_y_asignacion_inicial(self):
+        # Registrar equipo debe crear Dispositivo y AsignacionDispositivo activa.
         respuesta = self.client.post(
             reverse('registrar_dispositivo_biomedicos'),
             self._datos_formulario_dispositivo(
@@ -202,6 +207,8 @@ class EquiposBiomedicosViewsTests(TestCase):
         self.assertContains(respuesta, "Ver / Imprimir QR")
 
     def test_edicion_actualiza_dispositivo_y_asignacion(self):
+        # Si cambia ubicacion/responsable, la asignacion anterior se cierra
+        # y se crea una nueva.
         respuesta = self.client.post(
             reverse('editar_dispositivo_biomedicos', args=[self.dispositivo.id]),
             {
@@ -246,6 +253,7 @@ class EquiposBiomedicosViewsTests(TestCase):
         self.assertEqual(asignacion_actual.responsable, self.responsable_nuevo)
 
     def test_edicion_sin_cambio_de_ubicacion_no_duplica_asignacion(self):
+        # Editar datos administrativos no debe duplicar historial de asignacion.
         respuesta = self.client.post(
             reverse('editar_dispositivo_biomedicos', args=[self.dispositivo.id]),
             self._datos_formulario_dispositivo(
@@ -279,6 +287,7 @@ class EquiposBiomedicosViewsTests(TestCase):
 
     @override_settings(EQUIPOS_QR_BASE_URL="http://192.168.0.102:8000")
     def test_qr_usa_url_base_configurada(self):
+        # El QR debe usar la base configurada para que funcione desde telefono/red.
         respuesta = self.client.get(
             reverse('qr_dispositivo_biomedicos', args=[self.dispositivo.id])
         )
@@ -291,6 +300,7 @@ class EquiposBiomedicosViewsTests(TestCase):
         self.assertContains(respuesta, detalle_url)
 
     def test_baja_crea_registro_y_cambia_estado_del_dispositivo(self):
+        # Dar de baja crea historial y cambia el estado sin eliminar la ficha.
         respuesta = self.client.post(
             reverse('dar_baja_dispositivo_biomedicos', args=[self.dispositivo.id]),
             {
@@ -384,6 +394,7 @@ class EquiposBiomedicosViewsTests(TestCase):
         )
 
     def test_listado_oculta_bajas_por_defecto_y_las_muestra_con_filtro(self):
+        # Inventario normal muestra equipos activos; bajas aparecen solo al filtrar.
         BajaDispositivo.objects.create(
             dispositivo=self.dispositivo,
             fecha_baja=date.today(),

@@ -30,6 +30,7 @@
         </a>
     </div>
 
+    {# Filtros GET: views.py lee estos parametros y devuelve la tabla paginada. #}
     <form class="biomedicos-listado__controles" method="get">
         <div class="biomedicos-listado__busqueda">
             <label for="buscar_listado_dispositivo">Buscar</label>
@@ -137,6 +138,7 @@
         </div>
     </form>
 
+    {# La tabla recibe objetos ya preparados con asignacion_actual, estado_css y garantia_css. #}
     <div class="biomedicos-listado__tabla-contenedor">
         <table class="dataTable stripe hover row-border biomedicos-listado__tabla">
             <thead>
@@ -237,6 +239,7 @@
         </table>
     </div>
 
+    {# La paginacion conserva los filtros usando querystring. #}
     <footer class="biomedicos-listado__pie">
         {% if total_dispositivos %}
             <span>

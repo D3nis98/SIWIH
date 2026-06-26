@@ -9,8 +9,9 @@ from core.constants.choices_constants import TipoUnidad
 from rrhh.models import Empleado
 from servicio.models import Area_atencion, Unidad
 
-# Normalización de inventarios: se eliminan espacios y se valida que no tengan
-# más de 15 dígitos numéricos.
+# Helpers de normalizacion.
+# Se ejecutan antes de guardar para evitar datos repetidos con espacios,
+# inventarios demasiado largos o catalogos escritos con distintas mayusculas.
 
 def normalizar_codigo_inventario(valor, nombre_campo):
     valor = (valor or "").strip()
@@ -40,15 +41,15 @@ def normalizar_nombre_catalogo(valor):
 
 
 def obtener_catalogo_indefinido(modelo_catalogo):
+    # Marca/modelo pueden venir vacios; se usa un registro comun de catalogo
+    # para no guardar textos sueltos ni dejar la FK en blanco.
     objeto, _ = modelo_catalogo.objects.get_or_create(
         nombre="INDEFINIDO",
         defaults={"descripcion": "Valor usado cuando el dato no aplica."},
     )
     return objeto
-# //////////////////////////////////////////////////////////////////////////////////.
-
-# Modelos para gestión de equipos, incluyendo tipos, datos propios del equipo
-# y asignaciones a áreas clínicas o unidades administrativas.
+# Choices: Django guarda numeros en base de datos y muestra etiquetas legibles
+# en formularios/templates con get_campo_display().
 
 class EstadoDispositivo(models.IntegerChoices):
     OPERATIVO = 1, "Operativo"
@@ -68,6 +69,8 @@ class TipoTecnologiaDispositivo(models.IntegerChoices):
     NO_ELECTRONICO = 2, "No electrónico"
 
 
+# Catalogos administrables desde Django admin.
+# El campo activo oculta opciones nuevas sin borrar historico ya usado.
 class TipoDispositivo(models.Model):
     nombre = models.CharField(max_length=100, unique=True)
     descripcion = models.CharField(max_length=250, blank=True)
@@ -80,11 +83,14 @@ class TipoDispositivo(models.Model):
         ordering = ["nombre"]
 
     def clean(self):
+        # clean() centraliza reglas del modelo. Django lo ejecuta desde full_clean().
         self.nombre = normalizar_nombre_catalogo(self.nombre)
         if not self.nombre:
             raise ValidationError({"nombre": "Debe ingresar el tipo de equipo."})
 
     def save(self, *args, **kwargs):
+        # full_clean() hace que estas reglas apliquen tambien desde admin, shell
+        # o vistas, no solo desde un formulario web.
         self.full_clean()
         return super().save(*args, **kwargs)
 
@@ -104,6 +110,7 @@ class MarcaDispositivo(models.Model):
         ordering = ["nombre"]
 
     def clean(self):
+        # Los catalogos se guardan en mayuscula para evitar duplicados visuales.
         self.nombre = normalizar_nombre_catalogo(self.nombre)
         if not self.nombre:
             raise ValidationError({"nombre": "Debe ingresar la marca del equipo."})
@@ -128,6 +135,7 @@ class ModeloDispositivo(models.Model):
         ordering = ["nombre"]
 
     def clean(self):
+        # Misma regla que tipo/marca: nombres limpios y en mayuscula.
         self.nombre = normalizar_nombre_catalogo(self.nombre)
         if not self.nombre:
             raise ValidationError({"nombre": "Debe ingresar el modelo del equipo."})
@@ -139,8 +147,9 @@ class ModeloDispositivo(models.Model):
     def __str__(self):
         return self.nombre
 
-# Modelo principal del equipo: guarda sus características técnicas,
-# estado, criticidad, fechas, costos y auditoría.
+# Tabla principal del modulo.
+# Guarda la ficha del equipo y apunta a catalogos por FK para mantener la base
+# ligera: se guardan ids numericos, no textos repetidos.
 
 class Dispositivo(models.Model):
     tipo = models.ForeignKey(
@@ -219,6 +228,8 @@ class Dispositivo(models.Model):
     )
 
     class Meta:
+        # db_table fija el nombre real de la tabla. Si no se define, Django usaria
+        # equipos_biomedicos_dispositivo.
         db_table = "equipo_dispositivo"
         verbose_name = "Equipo"
         verbose_name_plural = "Equipos"
@@ -230,6 +241,8 @@ class Dispositivo(models.Model):
             ),
         ]
         constraints = [
+            # Restricciones de base de datos: protegen reglas criticas aunque
+            # alguien intente guardar datos fuera del formulario.
             models.CheckConstraint(
                 condition=Q(frecuencia_mantenimiento_meses__isnull=True)
                 | Q(frecuencia_mantenimiento_meses__gt=0),
@@ -250,21 +263,27 @@ class Dispositivo(models.Model):
 
     @property
     def codigo(self):
+        # Codigo visible para usuarios. No se guarda en la tabla; se calcula con el id.
         if not self.pk:
             return "DISP-SIN-ID"
         return f"DISP-{self.pk:05d}"
 
     @property
     def nombre(self):
+        # Mantiene compatibilidad con pantallas que esperan un "nombre" del equipo.
         if self.tipo_id:
             return self.tipo.nombre
         return "SIN TIPO"
 
     def clean(self):
+        # Validaciones de negocio antes de guardar.
+        # Aqui se normalizan opcionales y se revisan duplicados flexibles.
         errores = {}
         self.numero_serie = (self.numero_serie or "").strip() or None
 
         if self.marca_id is None:
+            # Si no se conoce marca/modelo, no guardamos texto vacio:
+            # usamos el catalogo INDEFINIDO.
             self.marca = obtener_catalogo_indefinido(MarcaDispositivo)
 
         if self.modelo_id is None:
@@ -331,6 +350,8 @@ class Dispositivo(models.Model):
 
 
 class BajaDispositivo(models.Model):
+    # Registro administrativo de baja. Es OneToOne porque un equipo solo debe
+    # tener una baja final, parecida a un cierre de expediente.
     dispositivo = models.OneToOneField(
         Dispositivo,
         on_delete=models.PROTECT,
@@ -355,6 +376,7 @@ class BajaDispositivo(models.Model):
         ordering = ["-fecha_baja", "-fecha_registro"]
 
     def clean(self):
+        # La baja exige motivo y no permite fechas futuras.
         errores = {}
         self.motivo = (self.motivo or "").strip()
 
@@ -376,6 +398,8 @@ class BajaDispositivo(models.Model):
 
 
 class AsignacionDispositivo(models.Model):
+    # Historial de ubicacion/responsable.
+    # Solo una asignacion debe quedar activa por equipo: fecha_fin = NULL.
     dispositivo = models.ForeignKey(
         Dispositivo,
         on_delete=models.PROTECT,
@@ -436,6 +460,8 @@ class AsignacionDispositivo(models.Model):
             ),
         ]
         constraints = [
+            # Un equipo se ubica en un area clinica o en una unidad no clinica,
+            # nunca en ambas al mismo tiempo.
             models.CheckConstraint(
                 condition=(
                     Q(area_clinica__isnull=False, unidad_no_clinica__isnull=True)
@@ -452,13 +478,17 @@ class AsignacionDispositivo(models.Model):
 
     @property
     def activa(self):
+        # Una asignacion activa es la que todavia no tiene fecha_fin.
         return self.fecha_fin is None
 
     @property
     def ubicacion(self):
+        # Permite mostrar una sola columna "ubicacion" sin importar el tipo de area.
         return self.area_clinica or self.unidad_no_clinica
 
     def clean(self):
+        # Reglas de consistencia: exactamente una ubicacion, fechas coherentes
+        # y una sola asignacion activa por equipo.
         errores = {}
         tiene_area_clinica = self.area_clinica_id is not None
         tiene_unidad_no_clinica = self.unidad_no_clinica_id is not None

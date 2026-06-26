@@ -17,32 +17,36 @@
         Selecciona una opción para gestionar los equipos del hospital.
     </p>
 
+    {# Acceso directo a la busqueda, camara no se implemetara!!!!!!. #}
     <div class="biomedicos-acciones-rapidas">
         <a class="formularioBotones-boton biomedicos-accion-rapida"
-           href="{% url 'buscar_dispositivo_biomedicos' %}">
+            href="{% url 'buscar_dispositivo_biomedicos' %}">
             <i class="bi bi-search"></i>
             <span>Buscar equipo</span>
         </a>
     </div>
 
+    {# Submenus internos del modulo Las opciones desactivadas son etapas futuras. #}
     <div class="biomedicos-submenus">
         <section class="biomedicos-submenu">
             <header class="biomedicos-submenu__encabezado">
                 <span class="biomedicos-submenu__icono">
                     <i class="bi bi-clipboard2-check"></i>
                 </span>
-                <h3>Inventario</h3>
+                <h3>INVENTARIO</h3>
             </header>
+                {# Redirigiendo a la página de registro de dispositivos biomedicos. #}
+
 
             <div class="biomedicos-submenu__opciones">
                 <a class="biomedicos-submenu__opcion"
-                   href="{% url 'registrar_dispositivo_biomedicos' %}">
+                    href="{% url 'registrar_dispositivo_biomedicos' %}">
                     <i class="bi bi-plus-square"></i>
                     <span>Registrar equipo</span>
                     <i class="bi bi-chevron-right"></i>
                 </a>
                 <a class="biomedicos-submenu__opcion"
-                   href="{% url 'listado_dispositivos_biomedicos' %}">
+                    href="{% url 'listado_dispositivos_biomedicos' %}">
                     <i class="bi bi-list-ul"></i>
                     <span>Listado de equipos</span>
                     <i class="bi bi-chevron-right"></i>
@@ -55,7 +59,7 @@
                 <span class="biomedicos-submenu__icono">
                     <i class="bi bi-tools"></i>
                 </span>
-                <h3>Mantenimiento</h3>
+                <h3>MANTENIMIENTO</h3>
             </header>
 
             <div class="biomedicos-submenu__opciones">
@@ -87,7 +91,7 @@
                 <span class="biomedicos-submenu__icono">
                     <i class="bi bi-bar-chart-line"></i>
                 </span>
-                <h3>Reportes</h3>
+                <h3>REPORTES</h3>
             </header>
 
             <div class="biomedicos-submenu__opciones">
@@ -117,7 +121,7 @@
 
     <p class="biomedicos-ayuda">
         <i class="bi bi-info-circle"></i>
-        Las opciones atenuadas se habilitarán conforme construyamos cada formulario.
+        MODULO EN DESARROLLO Y ABIERTOS A CAMBIOS.........................
     </p>
 </div>
 {% endblock content %}

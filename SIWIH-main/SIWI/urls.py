@@ -30,6 +30,8 @@ urlpatterns = [
     path('imagenologia/',include('imagenologia.urls')),
     path('referencia/',include('referencia.urls')),
     path('clinico/',include('clinico.urls')),
+    # Punto de entrada del modulo Equipos Desde aqui Django delega todas las
+    # rutas /equipos-biomedicos/... al archivo equipos_biomedicos/urls.py.
     path('equipos-biomedicos/', include('equipos_biomedicos.urls')),
     path('admin/', admin.site.urls),
 ]

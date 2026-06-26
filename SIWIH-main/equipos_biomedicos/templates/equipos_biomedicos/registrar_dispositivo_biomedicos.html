@@ -16,6 +16,7 @@
         <div class="tituloFormulario-subrallado"></div>
     </div>
 
+    {# Este template se reutiliza para registrar y editar. Los textos/URLs vienen desde views.py. #}
     <form class="biomedicos-registro" method="post" autocomplete="off">
         {% csrf_token %}
 
@@ -25,6 +26,7 @@
             </div>
         {% endif %}
 
+        {# Datos propios del equipo. Los selects de tipo/marca/modelo vienen filtrados desde forms.py. #}
         <section class="biomedicos-registro__seccion biomedicos-registro__seccion--informacion">
             <h3 class="biomedicos-registro__titulo">
                 <i class="bi bi-info-circle"></i>
@@ -70,6 +72,7 @@
             </div>
         </section>
 
+        {# Ubicacion inicial o actual: clinica y no clinica son campos distintos en la base. #}
         <section class="biomedicos-registro__seccion biomedicos-registro__seccion--ubicacion">
             <h3 class="biomedicos-registro__titulo">
                 <i class="bi bi-geo-alt"></i>
@@ -107,6 +110,7 @@
             </div>
         </section>
 
+        {# Estado, criticidad y frecuencia controlan inventario y futura logica de mantenimiento. #}
         <section class="biomedicos-registro__seccion biomedicos-registro__seccion--control">
             <h3 class="biomedicos-registro__titulo">
                 <i class="bi bi-shield"></i>
@@ -132,6 +136,7 @@
             </div>
         </section>
 
+        {# Datos opcionales de compra/garantia. La regla fuerte de garantia vive en models.py. #}
         <section class="biomedicos-registro__seccion biomedicos-registro__seccion--administrativa">
             <h3 class="biomedicos-registro__titulo">
                 <i class="bi bi-briefcase"></i>
@@ -165,6 +170,7 @@
             </div>
         </section>
 
+        {# Fotos queda reservado para una etapa futura; aun no guarda archivos. #}
         <section class="biomedicos-registro__seccion biomedicos-registro__seccion--fotos">
             <h3 class="biomedicos-registro__titulo">
                 <i class="bi bi-camera"></i>
@@ -192,6 +198,7 @@
         </section>
 
         <div class="biomedicos-registro__acciones">
+            {# En edicion views.py envia url_baja; en registro no aparece este boton. #}
             {% if url_baja %}
                 <a class="formularioBotones-boton biomedicos-registro__boton biomedicos-baja__boton"
                    href="{{ url_baja }}">
@@ -218,6 +225,7 @@
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function () {
+    // Muestra solo el selector de area que corresponde al tipo elegido.
     const tipoArea = document.getElementById('tipo_area_dispositivo');
     const campoClinica = document.getElementById('campo_area_clinica');
     const campoNoClinica = document.getElementById('campo_area_no_clinica');
@@ -244,6 +252,7 @@ document.addEventListener('DOMContentLoaded', function () {
     tipoArea.addEventListener('change', actualizarSelectorArea);
     actualizarSelectorArea();
 
+    // Select2 consulta empleados por AJAX para no cargar toda la tabla en el HTML.
     const responsableSelect = $('#responsable_dispositivo');
 
     if (responsableSelect.length && responsableSelect.select2) {

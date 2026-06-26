@@ -16,6 +16,7 @@
         <div class="tituloFormulario-subrallado"></div>
     </div>
 
+    {# qr_data_uri y detalle_url se generan en views.qr_dispositivo(). #}
     <section class="biomedicos-qr">
         <article class="biomedicos-qr__tarjeta">
             <div class="biomedicos-qr__encabezado">
@@ -30,8 +31,8 @@
             </div>
 
             <img class="biomedicos-qr__imagen"
-                 src="{{ qr_data_uri }}"
-                 alt="Código QR del equipo {{ dispositivo.codigo }}">
+                src="{{ qr_data_uri }}"
+                alt="Código QR del equipo {{ dispositivo.codigo }}">
 
             <dl class="biomedicos-qr__datos">
                 <div><dt>Marca</dt><dd>{{ dispositivo.marca|default:"INDEFINIDO" }}</dd></div>
@@ -73,6 +74,7 @@
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function () {
+    // Imprime la vista actual, con estilos especificos de impresion en el CSS.
     const botonImprimir = document.getElementById('imprimir_qr_equipo');
 
     if (botonImprimir) {

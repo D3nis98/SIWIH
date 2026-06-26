@@ -10,6 +10,8 @@ from .models import (
 )
 
 
+# Catalogos base del modulo. Se mantienen desde Django admin para evitar crear
+# pantallas propias solo para tipo, marca y modelo.
 @admin.register(TipoDispositivo)
 class TipoDispositivoAdmin(admin.ModelAdmin):
     list_display = ("nombre", "activo")
@@ -33,6 +35,8 @@ class ModeloDispositivoAdmin(admin.ModelAdmin):
 
 @admin.register(Dispositivo)
 class DispositivoAdmin(admin.ModelAdmin):
+    # Permite revisar la ficha del equipo desde admin, pero el flujo normal
+    # de registro/edicion sigue estando en las vistas del modulo.
     list_display = (
         "codigo",
         "tipo",
@@ -58,6 +62,7 @@ class DispositivoAdmin(admin.ModelAdmin):
     readonly_fields = ("fecha_creado", "fecha_modificado")
 
     def save_model(self, request, obj, form, change):
+        # Auditoria: registra automaticamente que usuario creo/modifico desde admin.
         if not obj.pk:
             obj.creado_por = request.user
         obj.modificado_por = request.user
@@ -66,6 +71,7 @@ class DispositivoAdmin(admin.ModelAdmin):
 
 @admin.register(BajaDispositivo)
 class BajaDispositivoAdmin(admin.ModelAdmin):
+    # Consulta administrativa de equipos dados de baja.
     list_display = (
         "dispositivo",
         "fecha_baja",
@@ -90,6 +96,7 @@ class BajaDispositivoAdmin(admin.ModelAdmin):
 
 @admin.register(AsignacionDispositivo)
 class AsignacionDispositivoAdmin(admin.ModelAdmin):
+    # Historial de ubicaciones y responsables del equipo.
     list_display = (
         "dispositivo",
         "ubicacion",
@@ -120,6 +127,7 @@ class AsignacionDispositivoAdmin(admin.ModelAdmin):
     readonly_fields = ("fecha_creado", "fecha_modificado")
 
     def save_model(self, request, obj, form, change):
+        # Auditoria equivalente a DispositivoAdmin.
         if not obj.pk:
             obj.creado_por = request.user
         obj.modificado_por = request.user

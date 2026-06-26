@@ -16,6 +16,7 @@
         </div>
     </div>
 
+    {# Resumen superior de la ficha. No muestra editar/baja; esas acciones viven en edicion. #}
     <section class="biomedicos-detalle__resumen">
         <div class="biomedicos-detalle__imagen">
                     <i class="bi bi-motherboard"></i>
@@ -59,6 +60,7 @@
         </div>
     </section>
 
+    {# Si existe BajaDispositivo, se muestra como cierre administrativo del equipo. #}
     {% if baja_dispositivo %}
         <section class="biomedicos-baja__resumen">
             <div class="biomedicos-baja__resumen-icono">
@@ -88,7 +90,9 @@
         </section>
     {% endif %}
 
+    {# Tarjetas de solo lectura construidas con Dispositivo y asignacion_actual. #}
     <div class="biomedicos-detalle__secciones">
+        {# Bloque reservado para cuando creemos el modulo de mantenimientos. #}
         <section class="biomedicos-detalle__tarjeta">
             <h3><i class="bi bi-info-circle"></i> Datos generales</h3>
             <dl class="biomedicos-detalle__datos">

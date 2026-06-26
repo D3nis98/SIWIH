@@ -31,6 +31,7 @@ from .models import (
 
 
 def inicio(request):
+    # Pantalla de entrada del modulo. Solo renderiza el menu interno de Equipos.
     return render(
         request,
         'equipos_biomedicos/equipos_biomedicos_inicio.html'
@@ -38,6 +39,8 @@ def inicio(request):
 
 
 def registrar_dispositivo(request):
+    # GET: muestra formulario vacio.
+    # POST valido: crea el equipo y su asignacion inicial en una transaccion.
     form = DispositivoCreateForm(request.POST or None)
 
     if request.method == "POST" and form.is_valid():
@@ -76,6 +79,7 @@ def registrar_dispositivo(request):
 
 
 def _obtener_asignacion_actual(dispositivo):
+    # La asignacion activa es la que no tiene fecha_fin.
     return dispositivo.asignaciones.filter(
         fecha_fin__isnull=True
     ).select_related(
@@ -86,6 +90,8 @@ def _obtener_asignacion_actual(dispositivo):
 
 
 def _obtener_baja_dispositivo(dispositivo):
+    # Evita repetir try/except cada vez que necesitamos saber si el equipo
+    # ya tiene baja administrativa.
     try:
         return dispositivo.baja
     except BajaDispositivo.DoesNotExist:
@@ -93,6 +99,8 @@ def _obtener_baja_dispositivo(dispositivo):
 
 
 def _crear_asignacion_dispositivo(dispositivo, form, usuario, observaciones):
+    # Crea una fila en el historial de asignaciones con los datos ya validados
+    # por DispositivoCreateForm.clean().
     return AsignacionDispositivo.objects.create(
         dispositivo=dispositivo,
         area_clinica=form.cleaned_data.get("area_clinica"),
@@ -105,6 +113,8 @@ def _crear_asignacion_dispositivo(dispositivo, form, usuario, observaciones):
 
 
 def _datos_asignacion_cambiaron(asignacion_actual, form):
+    # Si ubicacion o responsable no cambiaron, editar el equipo no crea una
+    # asignacion duplicada.
     if not asignacion_actual:
         return True
 
@@ -121,6 +131,8 @@ def _datos_asignacion_cambiaron(asignacion_actual, form):
 
 
 def _actualizar_asignacion_dispositivo(dispositivo, form, usuario, asignacion_actual):
+    # Cuando cambia la asignacion, cerramos la anterior y abrimos una nueva.
+    # Asi queda historial sin perder quien tuvo el equipo antes.
     if not _datos_asignacion_cambiaron(asignacion_actual, form):
         return asignacion_actual
 
@@ -138,6 +150,7 @@ def _actualizar_asignacion_dispositivo(dispositivo, form, usuario, asignacion_ac
 
 
 def _obtener_opciones_area_listado():
+    # Construye opciones de filtro solo con areas que tienen equipos asignados.
     opciones = []
     vistos = set()
     asignaciones = AsignacionDispositivo.objects.filter(
@@ -170,12 +183,14 @@ def _obtener_opciones_area_listado():
 
 
 def _parametro_entero(valor):
+    # Convierte parametros GET a enteros seguros antes de filtrar.
     if valor and valor.isdigit():
         return int(valor)
     return None
 
 
 def _prefetch_asignacion_activa():
+    # Prefetch evita consultar la asignacion activa una vez por cada fila de tabla.
     return Prefetch(
         "asignaciones",
         queryset=AsignacionDispositivo.objects.filter(
@@ -190,6 +205,7 @@ def _prefetch_asignacion_activa():
 
 
 def _obtener_dispositivos_base():
+    # Query base compartida por listado y busqueda.
     return Dispositivo.objects.select_related(
         "tipo",
         "marca",
@@ -198,6 +214,7 @@ def _obtener_dispositivos_base():
 
 
 def _aplicar_busqueda_dispositivos(dispositivos, consulta):
+    # Busqueda flexible: tipo, marca, modelo, serie, inventarios o id numerico.
     if not consulta:
         return dispositivos
 
@@ -218,6 +235,7 @@ def _aplicar_busqueda_dispositivos(dispositivos, consulta):
 
 
 def _ordenar_dispositivos(dispositivos):
+    # Orden estable para que paginacion/listados no cambien entre consultas.
     return dispositivos.order_by(
         "tipo__nombre",
         "marca__nombre",
@@ -227,6 +245,7 @@ def _ordenar_dispositivos(dispositivos):
 
 
 def _preparar_dispositivos_para_tabla(dispositivos):
+    # Agrega atributos temporales a cada objeto para simplificar el template.
     estado_css = {
         EstadoDispositivo.OPERATIVO: "biomedicos-estado--operativo",
         EstadoDispositivo.EN_MANTENIMIENTO: "biomedicos-estado--media",
@@ -253,6 +272,7 @@ def _preparar_dispositivos_para_tabla(dispositivos):
 
 
 def _obtener_estado_garantia(dispositivo):
+    # Calcula etiqueta visual de garantia sin guardarla en base de datos.
     if not dispositivo.fin_garantia:
         return "No indicada", "biomedicos-estado--inactivo"
 
@@ -268,6 +288,8 @@ def _obtener_estado_garantia(dispositivo):
 
 
 def listado_dispositivos(request):
+    # Vista principal de inventario. Lee filtros GET, aplica consultas,
+    # pagina resultados y renderiza la tabla.
     consulta = request.GET.get("q", "").strip()
     filtro_area = request.GET.get("area", "").strip()
     filtro_estado = request.GET.get("estado", "").strip()
@@ -381,6 +403,7 @@ def listado_dispositivos(request):
 
 
 def detalle_dispositivo(request, dispositivo_id):
+    # Ficha solo lectura del equipo. El id llega desde la URL.
     dispositivo = get_object_or_404(
         Dispositivo.objects.select_related(
             "tipo",
@@ -405,6 +428,8 @@ def detalle_dispositivo(request, dispositivo_id):
 
 
 def editar_dispositivo(request, dispositivo_id):
+    # Reutiliza DispositivoCreateForm y el template de registro.
+    # Si el equipo esta dado de baja, se bloquea la edicion.
     dispositivo = get_object_or_404(
         Dispositivo.objects.select_related("tipo", "marca", "modelo"),
         pk=dispositivo_id,
@@ -470,6 +495,8 @@ def editar_dispositivo(request, dispositivo_id):
 
 
 def dar_baja_dispositivo(request, dispositivo_id):
+    # Crea BajaDispositivo y marca el equipo como DADO_DE_BAJA.
+    # No elimina la ficha, por eso QR y detalle siguen funcionando.
     dispositivo = get_object_or_404(
         Dispositivo.objects.select_related("tipo", "marca", "modelo"),
         pk=dispositivo_id,
@@ -518,6 +545,7 @@ def dar_baja_dispositivo(request, dispositivo_id):
 
 
 def _generar_qr_data_uri(valor):
+    # Genera la imagen QR en memoria y la devuelve como data URI para el template.
     qr = qrcode.QRCode(
         error_correction=qrcode.constants.ERROR_CORRECT_M,
         box_size=10,
@@ -535,6 +563,8 @@ def _generar_qr_data_uri(valor):
 
 
 def _construir_url_qr_equipo(request, dispositivo_id):
+    # En produccion puede usarse EQUIPOS_QR_BASE_URL para que el QR apunte al
+    # dominio/IP estable. Si no existe, Django arma la URL desde la peticion.
     ruta_detalle = reverse(
         "detalle_dispositivo_biomedicos",
         kwargs={"dispositivo_id": dispositivo_id},
@@ -548,6 +578,7 @@ def _construir_url_qr_equipo(request, dispositivo_id):
 
 
 def qr_dispositivo(request, dispositivo_id):
+    # Pantalla imprimible: el QR contiene la URL de detalle del equipo.
     dispositivo = get_object_or_404(
         Dispositivo.objects.select_related("tipo", "marca", "modelo"),
         pk=dispositivo_id,
@@ -566,6 +597,8 @@ def qr_dispositivo(request, dispositivo_id):
 
 
 def buscar_dispositivo(request):
+    # Busqueda rapida. A diferencia del listado, muestra resultados solo cuando
+    # el usuario ingresa una consulta.
     consulta = request.GET.get("q", "").strip()
     dispositivos = Dispositivo.objects.none()
     page_obj = None
@@ -607,6 +640,8 @@ def buscar_dispositivo(request):
 
 
 def buscar_empleados(request):
+    # Endpoint AJAX usado por Select2 en el formulario de registro/edicion.
+    # Devuelve JSON con maximo 10 empleados activos.
     consulta = request.GET.get("q", "").strip()
     empleados = Empleado.objects.filter(estado=EstadoRegistro.ACTIVO)
 

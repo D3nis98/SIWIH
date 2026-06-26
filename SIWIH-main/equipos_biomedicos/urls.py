@@ -1,6 +1,8 @@
 from django.urls import path
 from . import views
 
+# Este archivo conecta rutas internas del modulo con funciones de views.py.
+# SIWI/urls.py incluye este archivo bajo el prefijo /equipos-biomedicos/.
 urlpatterns = [
     path('', views.inicio, name='inicio_biomedicos'),
     path(

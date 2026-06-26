@@ -1,7 +1,7 @@
 {% extends 'core/base.html' %}
 {% load static %}
 
-{% block title %}Buscar equipo{% endblock title %}
+    {% block title %}Buscar equipo{% endblock title %}
 
 {% block content %}
 <div class="contenedor2 biomedicos-pagina biomedicos-pagina--ancha">
@@ -76,9 +76,9 @@
                                 <td>{{ dispositivo.tipo }}</td>
                                 <td>{{ dispositivo.marca|default:"INDEFINIDO" }}</td>
                                 <td>{{ dispositivo.modelo|default:"INDEFINIDO" }}</td>
-                                <td>{{ dispositivo.numero_serie|default:"INDEFINIDO" }}</td>
-                                <td>{{ dispositivo.inventario_bienes_nacionales|default:"NO APLICA" }}</td>
-                                <td>{{ dispositivo.inventario_numero_ficha|default:"NO APLICA" }}</td>
+                                <td>{{ dispositivo.numero_serie|default:"Indefinido" }}</td>
+                                <td>{{ dispositivo.inventario_bienes_nacionales|default:"No aplica" }}</td>
+                                <td>{{ dispositivo.inventario_numero_ficha|default:"No aplica" }}</td>
                                 <td>
                                     {% if asignacion %}
                                         {{ asignacion.ubicacion }}

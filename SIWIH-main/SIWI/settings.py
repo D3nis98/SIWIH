@@ -65,6 +65,7 @@ INSTALLED_APPS = [
     'clinico',
     'usuario',
     'rrhh',
+    # Registra el modulo para que Django cargue modelos, admin, migraciones y templates.
     'equipos_biomedicos',
 ]
 

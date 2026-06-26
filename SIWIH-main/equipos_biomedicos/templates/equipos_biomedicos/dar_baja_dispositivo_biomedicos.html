@@ -21,6 +21,7 @@
         <div class="tituloFormulario-subrallado"></div>
     </div>
 
+    {# Advertencia visual: la baja no borra el equipo, solo cambia su estado y crea historial. #}
     <section class="biomedicos-baja__advertencia" role="alert">
         <i class="bi bi-exclamation-triangle"></i>
         <div>
@@ -32,6 +33,7 @@
         </div>
     </section>
 
+    {# El formulario guarda BajaDispositivo; views.py actualiza el estado del equipo. #}
     <form class="biomedicos-registro biomedicos-baja__formulario" method="post" autocomplete="off">
         {% csrf_token %}
 

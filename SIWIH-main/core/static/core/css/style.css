@@ -5030,8 +5030,9 @@ fieldset.referenciaRespuestaSeguimiento.ajustado {
    }
 }
 /*
- * ESTILOS DEL MODULO DE EQUIPOS BIOMEDICOS
- * Los contenedores, titulos, controles y botones reutilizan clases generales.
+ * ESTILOS DEL MODULO EQUIPOS
+ * Viven en core porque el modulo consume base.html y reutiliza clases globales.
+ * Incluye menu interno, registro/edicion, listado, detalle, busqueda, QR y baja.
  */
 
 .biomedicos-pagina {
